@@ -1,0 +1,320 @@
+{
+  "name": "Masala Kitchen",
+  "tagline": "Authentic Indian Flavours, Made with Love",
+  "address": "47 Abington Street, Northampton, NN1 2AJ",
+  "phone": "01604 123456",
+  "email": "hello@masakitchen.co.uk",
+  "hours": {
+    "Monday": "12:00pm – 10:00pm",
+    "Tuesday": "12:00pm – 10:00pm",
+    "Wednesday": "12:00pm – 10:00pm",
+    "Thursday": "12:00pm – 10:00pm",
+    "Friday": "12:00pm – 11:00pm",
+    "Saturday": "12:00pm – 11:00pm",
+    "Sunday": "1:00pm – 10:00pm"
+  },
+  "services": [
+    "Dine-in",
+    "Takeaway",
+    "Collection"
+  ],
+  "deals": [
+    {
+      "name": "Monday Takeaway Special",
+      "description": "20% off all takeaway orders every Monday",
+      "valid": "Mondays only"
+    },
+    {
+      "name": "Lunch Deal",
+      "description": "2 courses for £12.95 — starter + main",
+      "valid": "Monday to Friday, 12pm–3pm"
+    },
+    {
+      "name": "Student Discount",
+      "description": "10% off with valid student ID — dine-in only",
+      "valid": "Any day, any time"
+    },
+    {
+      "name": "Group Booking Offer",
+      "description": "Free poppadoms and chutneys for tables of 6 or more",
+      "valid": "Must book in advance"
+    }
+  ],
+  "menu": {
+    "Starters": [
+      {
+        "name": "Vegetable Samosa (2)",
+        "price": 4.95,
+        "description": "Crispy pastry filled with spiced potato and peas",
+        "allergens": [
+          "gluten"
+        ],
+        "vegan": true
+      },
+      {
+        "name": "Onion Bhaji (3)",
+        "price": 4.5,
+        "description": "Golden fried onion fritters with cumin and coriander",
+        "allergens": [
+          "gluten"
+        ],
+        "vegan": true
+      },
+      {
+        "name": "Seekh Kebab",
+        "price": 6.95,
+        "description": "Spiced minced lamb skewers, grilled in the tandoor",
+        "allergens": [],
+        "vegan": false
+      },
+      {
+        "name": "Chicken Tikka",
+        "price": 7.5,
+        "description": "Marinated chicken breast pieces, chargrilled",
+        "allergens": [
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Paneer Tikka",
+        "price": 7,
+        "description": "Indian cottage cheese marinated in spiced yoghurt, grilled",
+        "allergens": [
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Soup of the Day",
+        "price": 4,
+        "description": "Ask your server or our chatbot for today's special",
+        "allergens": [],
+        "vegan": true
+      }
+    ],
+    "Mains": [
+      {
+        "name": "Butter Chicken",
+        "price": 13.95,
+        "description": "Tender chicken in a rich, creamy tomato and butter sauce. Mild and aromatic.",
+        "allergens": [
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Lamb Rogan Josh",
+        "price": 14.95,
+        "description": "Slow-cooked Kashmiri lamb with bold spices and a deep red gravy. Medium heat.",
+        "allergens": [],
+        "vegan": false
+      },
+      {
+        "name": "Paneer Tikka Masala",
+        "price": 13.5,
+        "description": "Grilled paneer in a smoky, spiced tomato sauce. Medium.",
+        "allergens": [
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Chicken Biryani",
+        "price": 14.5,
+        "description": "Fragrant basmati rice layered with marinated chicken and whole spices. Served with raita.",
+        "allergens": [
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Dal Makhani",
+        "price": 11.95,
+        "description": "Black lentils slow-cooked overnight with butter and cream. Rich and comforting.",
+        "allergens": [
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Chana Masala",
+        "price": 11.5,
+        "description": "Chickpeas cooked in a tangy, spiced tomato gravy. Vegan and gluten-free.",
+        "allergens": [],
+        "vegan": true
+      },
+      {
+        "name": "King Prawn Masala",
+        "price": 16.95,
+        "description": "Juicy king prawns in a medium-spiced onion and tomato sauce.",
+        "allergens": [
+          "shellfish"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Saag Aloo",
+        "price": 10.95,
+        "description": "Baby spinach and potatoes cooked with garlic and ginger. Vegan.",
+        "allergens": [],
+        "vegan": true
+      },
+      {
+        "name": "Mixed Grill Platter",
+        "price": 18.95,
+        "description": "Seekh kebab, chicken tikka, lamb chop, and tandoori chicken. Served with salad and mint chutney.",
+        "allergens": [],
+        "vegan": false
+      }
+    ],
+    "Breads & Rice": [
+      {
+        "name": "Plain Naan",
+        "price": 2.95,
+        "description": "Soft leavened bread baked in the tandoor",
+        "allergens": [
+          "gluten",
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Garlic Naan",
+        "price": 3.25,
+        "description": "Naan brushed with garlic butter",
+        "allergens": [
+          "gluten",
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Peshwari Naan",
+        "price": 3.5,
+        "description": "Sweet naan filled with almonds and coconut",
+        "allergens": [
+          "gluten",
+          "dairy",
+          "nuts"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Steamed Basmati Rice",
+        "price": 2.95,
+        "description": "Fluffy long-grain basmati rice",
+        "allergens": [],
+        "vegan": true
+      },
+      {
+        "name": "Pilau Rice",
+        "price": 3.25,
+        "description": "Fragrant basmati with whole spices",
+        "allergens": [],
+        "vegan": true
+      },
+      {
+        "name": "Chips",
+        "price": 2.5,
+        "description": "Crispy fries — great with a curry",
+        "allergens": [],
+        "vegan": true
+      }
+    ],
+    "Desserts": [
+      {
+        "name": "Gulab Jamun",
+        "price": 4.5,
+        "description": "Soft milk dumplings soaked in rose and cardamom syrup. Served warm.",
+        "allergens": [
+          "dairy",
+          "gluten"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Mango Kulfi",
+        "price": 4.95,
+        "description": "Traditional Indian ice cream with alphonso mango. Gluten-free.",
+        "allergens": [
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Rasgulla",
+        "price": 4.5,
+        "description": "Light cottage cheese balls in a light sugar syrup",
+        "allergens": [
+          "dairy"
+        ],
+        "vegan": false
+      }
+    ],
+    "Drinks": [
+      {
+        "name": "Mango Lassi",
+        "price": 3.5,
+        "description": "Chilled yoghurt drink with alphonso mango",
+        "allergens": [
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Masala Chai",
+        "price": 2.5,
+        "description": "Spiced Indian tea with milk",
+        "allergens": [
+          "dairy"
+        ],
+        "vegan": false
+      },
+      {
+        "name": "Soft Drinks",
+        "price": 2,
+        "description": "Coke, Diet Coke, Lemonade, Sparkling Water, Still Water",
+        "allergens": [],
+        "vegan": true
+      },
+      {
+        "name": "Cobra Beer (330ml)",
+        "price": 3.95,
+        "description": "Smooth Indian lager, perfect with a curry",
+        "allergens": [
+          "gluten"
+        ],
+        "vegan": false
+      }
+    ]
+  },
+  "booking_info": {
+    "how": "Via phone, walk-in, or ask our chatbot to log your request",
+    "max_advance": "30 days in advance",
+    "large_groups": "For 8+ please call us directly on 01604 123456",
+    "note": "We’ll confirm your booking by phone within 2 hours"
+  },
+  "faqs": [
+    {
+      "q": "Do you cater for vegans?",
+      "a": "Yes — we have a good selection of vegan dishes. Chana Masala, Saag Aloo, Vegetable Samosa, Onion Bhaji, Pilau Rice, and Chips are all vegan."
+    },
+    {
+      "q": "Is there parking nearby?",
+      "a": "Yes — the Grosvenor Centre multi-storey is a 3-minute walk. Market Square car park is also very close."
+    },
+    {
+      "q": "Can I order online?",
+      "a": "Takeaway orders can be placed by phone on 01604 123456. We’re working on online ordering — watch this space!"
+    },
+    {
+      "q": "Do you do halal meat?",
+      "a": "Yes — all our meat is 100% halal certified."
+    },
+    {
+      "q": "Is there a minimum order for takeaway?",
+      "a": "No minimum order for collection. We don’t currently offer delivery — collection only."
+    }
+  ]
+}
