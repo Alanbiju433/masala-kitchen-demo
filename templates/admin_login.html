@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Login â Masala Kitchen</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;
+       background:linear-gradient(135deg,#1a0a00 0%,#3d1c00 100%);font-family:'Segoe UI',sans-serif}
+  .card{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;
+        box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .logo{text-align:center;margin-bottom:1.5rem}
+  .logo-icon{width:56px;height:56px;background:linear-gradient(135deg,#c0392b,#e74c3c);
+             border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+             font-size:1.6rem;margin-bottom:.75rem}
+  h1{font-size:1.4rem;font-weight:700;color:#1a0a00;text-align:center}
+  .sub{text-align:center;color:#888;font-size:.85rem;margin-top:.25rem;margin-bottom:1.5rem}
+  .field{margin-bottom:1rem}
+  label{display:block;font-size:.82rem;font-weight:600;color:#555;margin-bottom:.35rem}
+  input{width:100%;padding:.65rem .9rem;border:1.5px solid #ddd;border-radius:8px;
+        font-size:.95rem;transition:border .2s}
+  input:focus{outline:none;border-color:#c0392b}
+  .btn{width:100%;padding:.75rem;background:linear-gradient(135deg,#c0392b,#e74c3c);
+       color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;
+       cursor:pointer;margin-top:.5rem;transition:opacity .2s}
+  .btn:hover{opacity:.9}
+  .error{background:#ffeaea;color:#c0392b;padding:.6rem .9rem;border-radius:8px;
+          font-size:.85rem;margin-bottom:1rem;border:1px solid #f5c6cb}
+  .hint{text-align:center;font-size:.78rem;color:#aaa;margin-top:1rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">ð</div>
+    <h1>Masala Kitchen</h1>
+    <p class="sub">Admin Panel</p>
+  </div>
+  {% if error %}
+  <div class="error">{{ error }}</div>
+  {% endif %}
+  <form method="POST">
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocomplete="username"
+             placeholder="admin" required>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password"
+             placeholder="â¢â¢â¢â¢â¢â¢â¢â¢" required>
+    </div>
+    <button class="btn" type="submit">Sign In</button>
+  </form>
+  <p class="hint">Default: admin / admin123 â change after first login</p>
+</div>
+</body>
+</html>
