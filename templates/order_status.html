@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Track Your Order â Masala Kitchen</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--red:#c0392b;--gold:#f39c12;--green:#27ae60;--bg:#fff8f0}
+  body{background:var(--bg);font-family:'Segoe UI',sans-serif;color:#222;min-height:100vh}
+  header{background:linear-gradient(135deg,#1a0a00,#3d1c00);color:#fff;padding:1rem 1.5rem;
+         display:flex;align-items:center;gap:1rem}
+  header a{color:#f39c12;text-decoration:none;font-size:.9rem}
+  header h1{font-size:1.2rem;flex:1;text-align:center}
+  .container{max-width:600px;margin:2rem auto;padding:0 1rem}
+  /* Search box */
+  .search-card{background:#fff;border-radius:16px;padding:1.5rem;
+               box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:2rem}
+  .search-card h2{font-size:1.1rem;font-weight:700;margin-bottom:.5rem;color:#1a0a00}
+  .search-card p{font-size:.85rem;color:#888;margin-bottom:1rem}
+  .search-row{display:flex;gap:.5rem}
+  .search-row input{flex:1;padding:.65rem 1rem;border:1.5px solid #ddd;border-radius:8px;
+                    font-size:1rem;text-transform:uppercase;letter-spacing:.1em}
+  .search-row input:focus{outline:none;border-color:var(--red)}
+  .search-row button{padding:.65rem 1.2rem;background:var(--red);color:#fff;border:none;
+                     border-radius:8px;font-weight:600;cursor:pointer;font-size:.95rem}
+  /* Result */
+  .result{display:none}
+  .result.show{display:block}
+  .order-card{background:#fff;border-radius:16px;padding:1.5rem;
+              box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:1.5rem}
+  .order-header{display:flex;justify-content:space-between;align-items:flex-start;
+                margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+  .order-id{font-size:1.4rem;font-weight:800;color:var(--red);letter-spacing:.1em}
+  .order-type-badge{padding:.3rem .8rem;border-radius:20px;font-size:.8rem;font-weight:600;
+                    background:#ffecd2;color:#c0392b}
+  .order-meta{font-size:.85rem;color:#666;margin-top:.25rem}
+  /* Timeline */
+  .timeline{padding:1rem 0}
+  .step{display:flex;gap:1rem;align-items:flex-start;margin-bottom:1rem;position:relative}
+  .step:not(:last-child)::after{content:'';position:absolute;left:17px;top:36px;
+                                 width:2px;height:calc(100% - 16px);background:#e0e0e0}
+  .step.done::after{background:var(--green)}
+  .step-icon{width:36px;height:36px;border-radius:50%;border:2px solid #ddd;
+             display:flex;align-items:center;justify-content:center;font-size:1rem;
+             flex-shrink:0;background:#fff;z-index:1;position:relative}
+  .step.done .step-icon{border-color:var(--green);background:var(--green);color:#fff}
+  .step.active .step-icon{border-color:var(--gold);background:var(--gold);color:#fff;
+                          animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(243,156,18,.4)}50%{box-shadow:0 0 0 8px rgba(243,156,18,0)}}
+  .step-text h3{font-size:.9rem;font-weight:600;margin-bottom:.15rem}
+  .step-text p{font-size:.78rem;color:#888}
+  .step.done .step-text h3{color:var(--green)}
+  .step.active .step-text h3{color:var(--gold)}
+  /* Items */
+  .items-card{background:#fff;border-radius:16px;padding:1.5rem;
+              box-shadow:0 4px 20px rgba(0,0,0,.08)}
+  .items-card h3{font-size:1rem;font-weight:700;margin-bottom:.75rem;color:#1a0a00}
+  .item-row{display:flex;justify-content:space-between;font-size:.88rem;
+             padding:.3rem 0;border-bottom:1px dashed #f0e8e0}
+  .item-row:last-of-type{border-bottom:none}
+  .total-row{display:flex;justify-content:space-between;font-weight:700;font-size:.95rem;
+             padding-top:.75rem;margin-top:.25rem;border-top:2px solid #f0e8e0}
+  /* Error */
+  .error-msg{background:#ffeaea;color:var(--red);padding:1rem;border-radius:10px;
+              font-size:.88rem;border:1px solid #f5c6cb;margin-bottom:1rem;display:none}
+  .error-msg.show{display:block}
+  /* Payment badge */
+  .pay-badge{display:inline-block;padding:.2rem .6rem;border-radius:4px;
+              font-size:.75rem;font-weight:600}
+  .pay-badge.paid{background:#d4edda;color:#155724}
+  .pay-badge.pending{background:#fff3cd;color:#856404}
+</style>
+</head>
+<body>
+<header>
+  <a href="/">â Back to Menu</a>
+  <h1>Track Your Order</h1>
+</header>
+
+<div class="container">
+  <div class="search-card">
+    <h2>Enter your Order ID</h2>
+    <p>Your 6-character order ID was shown when you placed your order.</p>
+    <div class="search-row">
+      <input id="oidInput" type="text" maxlength="6" placeholder="e.g. AB3X7K"
+             oninput="this.value=this.value.toUpperCase()">
+      <button onclick="lookupOrder()">Track</button>
+    </div>
+  </div>
+
+  <div class="error-msg" id="errMsg"></div>
+
+  <div class="result" id="result">
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <div class="order-id" id="rId"></div>
+          <div class="order-meta" id="rMeta"></div>
+        </div>
+        <span class="order-type-badge" id="rType"></span>
+      </div>
+
+      <div class="timeline" id="timeline"></div>
+    </div>
+
+    <div class="items-card">
+      <h3>Your Items</h3>
+      <div id="itemsList"></div>
+      <div class="total-row">
+        <span>Total</span>
+        <span id="rTotal"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STEPS = [
+  { key:'received',  label:'Order Received',  icon:'â',  desc:'We got your order and are preparing it.' },
+  { key:'preparing', label:'Preparing',        icon:'ð³', desc:'Your food is being cooked fresh.' },
+  { key:'ready',     label:'Ready',            icon:'â',  desc:'Your order is ready for collection / serving.' },
+  { key:'completed', label:'Completed',        icon:'â',  desc:'Order collected / delivered. Enjoy!' },
+];
+const CANCELLED_STEP = { key:'cancelled', label:'Cancelled', icon:'â', desc:'This order was cancelled.' };
+
+let pollTimer = null;
+let currentOid = '';
+
+function lookupOrder() {
+  const oid = document.getElementById('oidInput').value.trim().toUpperCase();
+  if (oid.length !== 6) { showError('Please enter a valid 6-character order ID.'); return; }
+  currentOid = oid;
+  fetchOrder(oid);
+}
+
+function fetchOrder(oid) {
+  fetch(`/api/order/${oid}`)
+    .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
+    .then(data => {
+      showError('');
+      renderOrder(data);
+      clearInterval(pollTimer);
+      if (!['completed','cancelled'].includes(data.status)) {
+        pollTimer = setInterval(() => fetchOrder(oid), 10000);
+      }
+    })
+    .catch(() => {
+      showError('Order not found. Check your order ID and try again.');
+      document.getElementById('result').classList.remove('show');
+    });
+}
+
+function renderOrder(d) {
+  document.getElementById('rId').textContent = d.id;
+  document.getElementById('rType').textContent = d.order_type;
+  const date = new Date(d.created_at).toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'});
+  const payBadge = `<span class="pay-badge ${d.payment_status==='paid'?'paid':'pending'}">
+    ${d.payment_status==='paid'?'Paid':'Pay on Arrival'}</span>`;
+  document.getElementById('rMeta').innerHTML =
+    `${d.name} &nbsp;Â·&nbsp; ${date} &nbsp;Â·&nbsp; ${payBadge}`;
+
+  // Timeline
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = '';
+  const isCancelled = d.status === 'cancelled';
+  const steps = isCancelled ? [CANCELLED_STEP] : STEPS;
+  const statusOrder = ['received','preparing','ready','completed'];
+  const currentIdx  = statusOrder.indexOf(d.status);
+
+  steps.forEach((s, i) => {
+    const doneIdx = statusOrder.indexOf(s.key);
+    const done    = !isCancelled && doneIdx <= currentIdx;
+    const active  = !isCancelled && s.key === d.status;
+    const div = document.createElement('div');
+    div.className = `step${done?' done':''}${active?' active':''}`;
+    div.innerHTML = `
+      <div class="step-icon">${s.icon}</div>
+      <div class="step-text"><h3>${s.label}</h3><p>${s.desc}</p></div>`;
+    tl.appendChild(div);
+  });
+
+  // Items
+  const il = document.getElementById('itemsList');
+  il.innerHTML = '';
+  d.items.forEach(it => {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    const opts = it.options ? Object.entries(it.options)
+      .map(([k,v])=>`${k}: ${v}`).join(', ') : '';
+    row.innerHTML = `
+      <span>${it.qty || 1}Ã ${it.name}${opts?` <small style="color:#aaa">(${opts})</small>`:''}</span>
+      <span>Â£${((it.price||0)*(it.qty||1)).toFixed(2)}</span>`;
+    il.appendChild(row);
+  });
+  document.getElementById('rTotal').textContent = `Â£${d.total.toFixed(2)}`;
+  document.getElementById('result').classList.add('show');
+}
+
+function showError(msg) {
+  const el = document.getElementById('errMsg');
+  if (msg) { el.textContent = msg; el.classList.add('show'); }
+  else { el.textContent = ''; el.classList.remove('show'); }
+}
+
+// Support ?id=XXXX in URL
+const urlId = new URLSearchParams(location.search).get('id');
+if (urlId) {
+  document.getElementById('oidInput').value = urlId.toUpperCase();
+  lookupOrder();
+}
+</script>
+</body>
+</html>
