@@ -429,7 +429,7 @@ footer{background:#07101A;padding:22px 0}
         <img class="about-img" src="https://images.unsplash.com/photo-1517244683847-7456b63c5969?w=800&h=900&fit=crop&auto=format&q=80" alt="Masala Kitchen Indian food spread" loading="lazy">
       </div>
       <div class="about-content">
-        <h2>A Taste of Authentic India</h2>
+        <h2>A Tacte of Authentic India</h2>
         <p>Masala Kitchen has been serving the people of Northampton with the finest Indian cuisine for over 15 years. Every dish is crafted from authentic recipes using freshly ground spices imported directly from India.</p>
         <p>Our chefs bring generations of culinary expertise from across the subcontinent — from the rich butter curries of Punjab to the fragrant biryanis of Hyderabad.</p>
         <div class="about-badges">
@@ -934,4 +934,174 @@ const NO_SPICE = ['Drinks', 'Desserts', 'Breads & Rice'];
 
 function openCust(btn) {
   cItem = { name: btn.dataset.name, price: parseFloat(btn.dataset.price), cat: btn.dataset.cat, desc: btn.dataset.desc };
-  cQty = 1; cSpice = 'Mild'; cPor
+  cQty = 1; cSpice = 'Mild'; cPortion = 'Regular'; cEx = 0;
+  document.getElementById('cust-title').textContent = cItem.name;
+  document.getElementById('cust-desc').textContent = cItem.desc;
+  document.getElementById('cust-qty').textContent = '1';
+  document.getElementById('cust-notes').value = '';
+  document.getElementById('spice-sec').style.display = NO_SPICE.includes(cItem.cat) ? 'none' : 'block';
+  document.getElementById('portion-sec').style.display = cItem.cat === 'Drinks' ? 'none' : 'block';
+  document.querySelectorAll('#spice-grp .pill').forEach(p => p.classList.toggle('active', p.dataset.v === 'Mild'));
+  document.querySelectorAll('#portion-grp .pill').forEach(p => p.classList.toggle('active', p.dataset.v === 'Regular'));
+  updCustP();
+  document.getElementById('cust-ov').classList.add('open');
+}
+function closeCust() { document.getElementById('cust-ov').classList.remove('open'); }
+function updCustP() {
+  if (!cItem) return;
+  document.getElementById('cust-price').innerHTML = '&#163;' + ((cItem.price + cEx) * cQty).toFixed(2);
+}
+function chQty(d) { cQty = Math.max(1, cQty + d); document.getElementById('cust-qty').textContent = cQty; updCustP(); }
+
+document.getElementById('spice-grp').addEventListener('click', e => {
+  const b = e.target.closest('.pill'); if (!b) return;
+  document.querySelectorAll('#spice-grp .pill').forEach(p => p.classList.remove('active'));
+  b.classList.add('active'); cSpice = b.dataset.v;
+});
+document.getElementById('portion-grp').addEventListener('click', e => {
+  const b = e.target.closest('.pill'); if (!b) return;
+  document.querySelectorAll('#portion-grp .pill').forEach(p => p.classList.remove('active'));
+  b.classList.add('active'); cPortion = b.dataset.v; cEx = parseFloat(b.dataset.ex || 0); updCustP();
+});
+
+function confirmAdd() {
+  if (!cItem) return;
+  cart.push({ name: cItem.name, price: cItem.price + cEx, qty: cQty,
+    spice: NO_SPICE.includes(cItem.cat) ? '' : cSpice,
+    portion: cPortion, notes: document.getElementById('cust-notes').value.trim(), cat: cItem.cat });
+  closeCust(); openCart();
+}
+
+/* CHECKOUT */
+function openCheckout() {
+  if (!cart.length) return;
+  closeCart();
+  let html = '', tot = 0;
+  cart.forEach(i => {
+    const lt = i.price * i.qty; tot += lt;
+    html += '<div class="co-irow"><span>' + i.qty + 'x ' + i.name + (i.portion === 'Large' ? ' (L)' : '') + '</span><span>&#163;' + lt.toFixed(2) + '</span></div>';
+  });
+  html += '<hr class="co-hr"><div class="co-tot"><span>Total</span><span>&#163;' + tot.toFixed(2) + '</span></div>';
+  document.getElementById('co-sum').innerHTML = html;
+  document.getElementById('co-total-disp').innerHTML = '&#163;' + tot.toFixed(2);
+  document.getElementById('co-time-wrap').style.display = orderType === 'Dine-in' ? 'none' : 'block';
+  document.getElementById('co-ov').classList.add('open');
+}
+function closeCheckout() { document.getElementById('co-ov').classList.remove('open'); }
+
+async function placeOrder() {
+  const name  = document.getElementById('co-name').value.trim();
+  const phone = document.getElementById('co-phone').value.trim();
+  if (!name || !phone) { alert('Please enter your name and phone number.'); return; }
+  if (orderType === 'Delivery') {
+    const addr = (document.getElementById('co-address')||{}).value || '';
+    const pc   = (document.getElementById('co-postcode')||{}).value || '';
+    if (!addr.trim() || !pc.trim()) { alert('Please enter your delivery address and postcode.'); return; }
+  }
+  const raw   = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const total = calcDiscountedTotal(raw);
+  const payload = {
+    order_type:     orderType,
+    name, phone,
+    email:          document.getElementById('co-email').value.trim(),
+    address:        (document.getElementById('co-address')||{value:''}).value.trim(),
+    postcode:       (document.getElementById('co-postcode')||{value:''}).value.trim(),
+    time:           document.getElementById('co-time').value,
+    notes:          document.getElementById('co-notes').value.trim(),
+    payment_method: payMethod,
+    promo_code:     activePromo ? activePromo.code : '',
+    items:          cart,
+    total:          total.toFixed(2)
+  };
+  try {
+    const res  = await fetch('/order', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const data = await res.json();
+    closeCheckout();
+    document.getElementById('ord-suc-msg').textContent =
+      'Thanks ' + name + '! Your ' + orderType.toLowerCase() + ' order is confirmed. We\'ll call ' + phone + ' shortly.';
+    // Show order ID and tracking link
+    if (data.order_id) {
+      const idWrap = document.getElementById('ord-id-wrap');
+      const idDisp = document.getElementById('ord-id-disp');
+      const trackLink = document.getElementById('ord-track-link');
+      if (idWrap)   { idDisp.textContent = data.order_id; idWrap.style.display = 'block'; }
+      if (trackLink){ trackLink.href = '/order/status?id=' + data.order_id; trackLink.style.display = 'inline-block'; }
+    }
+    document.getElementById('ord-suc-ov').classList.add('open');
+    cart = []; activePromo = null;
+    document.getElementById('co-promo').value = '';
+    document.getElementById('promo-msg').style.display = 'none';
+    renderCart();
+  } catch(e) { alert('Error placing order. Please call us on 01604 123456.'); }
+}
+
+/* BOOKING */
+document.getElementById('bd').min = new Date().toISOString().split('T')[0];
+async function submitBooking(e) {
+  e.preventDefault();
+  const payload = { name: document.getElementById('bn').value.trim(),
+    phone: document.getElementById('bp').value.trim(), email: document.getElementById('be').value.trim(),
+    date: document.getElementById('bd').value, time: document.getElementById('bt').value,
+    guests: document.getElementById('bg').value, notes: document.getElementById('bno').value.trim() };
+  try {
+    await fetch('/book', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+    document.getElementById('bk-suc-ov').classList.add('open');
+    document.querySelector('.book-form').reset();
+  } catch(e) { alert('Error. Please call 01604 123456.'); }
+}
+
+/* CHAT */
+let chatOpen = false, firstOpen = true;
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-win').classList.toggle('open', chatOpen);
+  document.getElementById('ci-open').style.display = chatOpen ? 'none' : 'block';
+  document.getElementById('ci-close').style.display = chatOpen ? 'block' : 'none';
+  document.getElementById('chat-notif').style.display = 'none';
+  if (chatOpen && firstOpen) { firstOpen = false; welcome(); }
+  if (chatOpen) document.getElementById('chat-input').focus();
+}
+function getT() { return new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+function appendMsg(text, role) {
+  const m = document.getElementById('chat-msgs');
+  const d = document.createElement('div'); d.className = 'msg ' + role;
+  d.innerHTML = '<div class="msg-b">' + text.replace(/\n/g,'<br>') + '</div><div class="msg-t">' + getT() + '</div>';
+  m.appendChild(d); m.scrollTop = m.scrollHeight;
+}
+function showTyping() {
+  const m = document.getElementById('chat-msgs');
+  const d = document.createElement('div'); d.className = 'msg bot'; d.id = 'typ-ind';
+  d.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  m.appendChild(d); m.scrollTop = m.scrollHeight;
+}
+function hideTyping() { document.getElementById('typ-ind')?.remove(); }
+function welcome() {
+  setTimeout(() => appendMsg("Hi! I'm the Masala Kitchen AI — I know our full menu, deals, hours, and can help with bookings.\n\nWhat can I help you with?", 'bot'), 350);
+}
+async function sendMsg(text) {
+  const inp = document.getElementById('chat-input');
+  const msg = text || inp.value.trim(); if (!msg) return;
+  if (!text) inp.value = '';
+  appendMsg(msg, 'user'); showTyping();
+  try {
+    const r = await fetch('/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg}) });
+    const d = await r.json(); hideTyping();
+    appendMsg(d.reply || 'Sorry, something went wrong.', 'bot');
+  } catch(e) { hideTyping(); appendMsg('Could not reach the server. Please check your connection.', 'bot'); }
+}
+function sendQ(text) { if (!chatOpen) toggleChat(); setTimeout(() => sendMsg(text), firstOpen ? 550 : 0); }
+async function resetChat() {
+  await fetch('/reset', {method:'POST'});
+  document.getElementById('chat-msgs').innerHTML = ''; welcome();
+}
+document.getElementById('chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+setTimeout(() => { if (!chatOpen) document.getElementById('chat-notif').style.display = 'flex'; }, 3000);
+
+/* SCROLL FX */
+window.addEventListener('scroll', () => {
+  document.getElementById('hdr').style.boxShadow = window.scrollY > 10 ? '0 2px 32px rgba(0,0,0,.45)' : '';
+});
+</script>
+{% endraw %}
+</body>
+</html>
