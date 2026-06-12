@@ -1,150 +1,133 @@
-import os
-import json
-from flask import Flask, render_template, request, jsonify, session
+import os, json, sqlite3, random, string
+from functools import wraps
+from flask import (Flask, render_template, request, jsonify,
+                   session, redirect, url_for, g)
 from openai import OpenAI
+from werkzeug.security import generate_password_hash, check_password_hash
 
+# ââ Stripe (optional â set env vars to enable) âââââââââââââââââââââââââââââââââ
+try:
+    import stripe as _stripe
+    _STRIPE_SECRET = os.environ.get('STRIPE_SECRET_KEY', '')
+    STRIPE_PUB     = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+    STRIPE_ON      = bool(_STRIPE_SECRET and STRIPE_PUB)
+    if STRIPE_ON:
+        _stripe.api_key = _STRIPE_SECRET
+except ImportError:
+    _stripe = None
+    STRIPE_ON  = False
+    STRIPE_PUB = ''
+
+# ââ App ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "masala-kitchen-dev-key-change-in-prod")
+app.secret_key = os.environ.get('SECRET_KEY', 'masala-kitchen-dev-key-change-in-prod')
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+DB = os.path.join(os.path.dirname(__file__), 'masala.db')
+client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
 
-# Load restaurant data once at startup
-with open("data/restaurant.json", "r") as f:
+with open('data/restaurant.json') as f:
     RESTAURANT = json.load(f)
 
-# Build a rich system prompt from the restaurant data
-def build_system_prompt():
-    r = RESTAURANT
-    menu_text = ""
-    for category, items in r["menu"].items():
-        menu_text += f"\n{category}:\n"
-        for item in items:
-            vegan_tag = " [VEGAN]" if item["vegan"] else ""
-            allergen_tag = f" (allergens: {', '.join(item['allergens'])})" if item["allergens"] else ""
-            menu_text += f"  - {item['name']} — £{item['price']:.2f}: {item['description']}{vegan_tag}{allergen_tag}\n"
+# ââ Database helpers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+def get_db():
+    db = getattr(g, '_db', None)
+    if db is None:
+        db = g._db = sqlite3.connect(DB)
+        db.row_factory = sqlite3.Row
+        db.execute('PRAGMA journal_mode=WAL')
+    return db
 
-    hours_text = "\n".join([f"  {day}: {time}" for day, time in r["hours"].items()])
-    deals_text = "\n".join([f"  - {d['name']}: {d['description']} ({d['valid']})" for d in r["deals"]])
+@app.teardown_appcontext
+def close_db(exc):
+    db = getattr(g, '_db', None)
+    if db:
+        db.close()
 
-    booking_info = r.get("booking_info", {})
-    booking_text = (
-        f"Advance booking: up to {booking_info.get('max_advance', '30 days')}\n"
-        f"Large groups (8+): {booking_info.get('large_groups', 'please call us directly')}"
-    )
+def init_db():
+    with app.app_context():
+        db = get_db()
+        db.executescript('''
+            CREATE TABLE IF NOT EXISTS admin_users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS orders (
+                id TEXT PRIMARY KEY,
+                order_type TEXT NOT NULL,
+                name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                email TEXT DEFAULT '',
+                address TEXT DEFAULT '',
+                postcode TEXT DEFAULT '',
+                items TEXT NOT NULL,
+                total REAL NOT NULL,
+                notes TEXT DEFAULT '',
+                payment_method TEXT DEFAULT 'cash',
+                payment_status TEXT DEFAULT 'pending',
+                stripe_pi TEXT DEFAULT '',
+                status TEXT DEFAULT 'received',
+                created_at TEXT DEFAULT (datetime('now','localtime')),
+                updated_at TEXT DEFAULT (datetime('now','localtime'))
+            );
+            CREATE TABLE IF NOT EXISTS menu_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                category TEXT NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT DEFAULT '',
+                price REAL NOT NULL,
+                vegan INTEGER DEFAULT 0,
+                allergens TEXT DEFAULT '[]',
+                active INTEGER DEFAULT 1,
+                sort_order INTEGER DEFAULT 0
+            );
+        ''')
+        # Default admin
+        if not db.execute('SELECT 1 FROM admin_users LIMIT 1').fetchone():
+            db.execute('INSERT INTO admin_users (username,password_hash) VALUES (?,?)',
+                       ('admin', generate_password_hash('admin123')))
+        # Seed menu from JSON once
+        if not db.execute('SELECT 1 FROM menu_items LIMIT 1').fetchone():
+            s = 0
+            for cat, items in RESTAURANT['menu'].items():
+                for it in items:
+                    db.execute('''INSERT INTO menu_items
+                        (category,name,description,price,vegan,allergens,sort_order)
+                        VALUES(?,?,?,?,?,?,?)''',
+                        (cat, it['name'], it.get('description',''), it['price'],
+                         1 if it.get('vegan') else 0,
+                         json.dumps(it.get('allergens',[])), s))
+                    s += 1
+        db.commit()
 
-    faqs = r.get("faqs", [])
-    faqs_text = "\n".join([f"  Q: {f['q']}\n  A: {f['a']}" for f in faqs]) if faqs else "  (none)"
+init_db()
 
-    return f"""You are the friendly AI assistant for {r['name']} — "{r['tagline']}".
+# ââ Helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+def short_id():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
-You help customers with menu questions, allergen info, bookings, deals, opening hours, and general enquiries. You're warm, helpful, and knowledgeable. Keep responses concise and conversational — like a helpful member of staff, not a wall of text.
+def admin_required(f):
+    @wraps(f)
+    def deco(*a, **kw):
+        if not session.get('admin_id'):
+            return redirect(url_for('admin_login'))
+        return f(*a, **kw)
+    return deco
 
-== RESTAURANT INFO ==
-Name: {r['name']}
-Address: {r['address']}
-Phone: {r['phone']}
-Email: {r['email']}
-Services: {', '.join(r['services'])}
+def menu_from_db():
+    db = get_db()
+    rows = db.execute(
+        'SELECT * FROM menu_items WHERE active=1 ORDER BY category,sort_order,id'
+    ).fetchall()
+    cats = {}
+    for r in rows:
+        cat = r['category']
+        cats.setdefault(cat, [])
+        cats[cat].append({
+            'name': r['name'], 'description': r['description'],
+            'price': r['price'], 'vegan': bool(r['vegan']),
+            'allergens': json.loads(r['allergens']),
+        })
+    return cats
 
-== OPENING HOURS ==
-{hours_text}
-
-== CURRENT DEALS & OFFERS ==
-{deals_text}
-
-== FULL MENU ==
-{menu_text}
-
-== BOOKING INFO ==
-{booking_text}
-
-When a customer wants to make a booking, collect: name, date, time, party size, and a contact phone number. Once you have all 5, confirm the booking details back to them and say the team will call to confirm within 2 hours.
-
-== FAQs ==
-{faqs_text}
-
-== RULES ==
-- If asked about something not on the menu or not related to the restaurant, politely say you can only help with Masala Kitchen questions.
-- Never make up prices, dishes, or information not listed above.
-- Always mention allergens when a customer asks about specific dietary requirements.
-- For complaints or complex issues, ask the customer to call {r['phone']} or email {r['email']}.
-- Be conversational and warm. Use occasional friendly phrases but don't overdo it.
-"""
-
-SYSTEM_PROMPT = build_system_prompt()
-
-
-@app.route("/")
-def index():
-    return render_template("index.html", restaurant=RESTAURANT)
-
-
-@app.route("/chat", methods=["POST"])
-def chat():
-    data = request.get_json()
-    user_message = data.get("message", "").strip()
-
-    if not user_message:
-        return jsonify({"error": "No message provided"}), 400
-
-    if "history" not in session:
-        session["history"] = []
-
-    session["history"].append({"role": "user", "content": user_message})
-    history = session["history"][-20:]
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "system", "content": SYSTEM_PROMPT}] + history,
-            max_tokens=400,
-            temperature=0.7,
-        )
-        assistant_message = response.choices[0].message.content
-        session["history"].append({"role": "assistant", "content": assistant_message})
-        session.modified = True
-        return jsonify({"reply": assistant_message})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/reset", methods=["POST"])
-def reset():
-    session.pop("history", None)
-    return jsonify({"status": "ok"})
-
-
-@app.route("/order", methods=["POST"])
-def order():
-    data = request.get_json()
-    name = data.get("name", "Unknown")
-    order_type = data.get("order_type", "Dine-in")
-    items = data.get("items", [])
-    total = data.get("total", "0.00")
-    phone = data.get("phone", "")
-    print(f"=== NEW ORDER ===")
-    print(f"Type: {order_type} | Name: {name} | Phone: {phone} | Total: £{total}")
-    for i in items:
-        spice = f" [{i.get('spice','')}]" if i.get('spice') else ""
-        portion = f" [{i.get('portion','')}]" if i.get('portion') not in ('', 'Regular') else ""
-        print(f"  {i.get('qty','1')}x {i.get('name','?')}{spice}{portion} — £{i.get('price','?')}")
-    if data.get("notes"):
-        print(f"Notes: {data['notes']}")
-    print(f"=================")
-    return jsonify({"success": True, "message": "Order received"})
-
-
-@app.route("/book", methods=["POST"])
-def book():
-    data = request.get_json()
-    print(f"=== NEW BOOKING ===")
-    print(f"Name: {data.get('name')} | Phone: {data.get('phone')} | Email: {data.get('email','')}")
-    print(f"Date: {data.get('date')} | Time: {data.get('time')} | Guests: {data.get('guests')}")
-    if data.get("notes"):
-        print(f"Notes: {data['notes']}")
-    print(f"==================")
-    return jsonify({"success": True, "message": "Booking received"})
-
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+# ââ AI system prompt ââââââââââââââââââââââââââââââ
