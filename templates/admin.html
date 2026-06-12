@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin – Masala Kitchen</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --red:#c0392b;--dark:#1a0a00;--gold:#f39c12;--green:#27ae60;
+  --blue:#2980b9;--sidebar-w:220px;--bg:#f5f5f5
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#222;display:flex;min-height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{width:var(--sidebar-w);background:var(--dark);color:#fff;
+          display:flex;flex-direction:column;flex-shrink:0;position:fixed;
+          top:0;left:0;height:100vh;z-index:100}
+.sb-logo{padding:1.2rem 1rem 1rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo h2{font-size:1rem;font-weight:700;color:var(--gold)}
+.sb-logo p{font-size:.75rem;color:#aaa;margin-top:.15rem}
+.sb-nav{flex:1;padding:.75rem 0;overflow-y:auto}
+.sb-item{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;
+          cursor:pointer;color:rgba(255,255,255,.75);font-size:.88rem;
+          transition:all .15s;border-left:3px solid transparent}
+.sb-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.sb-item.active{background:rgba(192,57,43,.2);color:#fff;border-left-color:var(--red)}
+.sb-icon{width:18px;height:18px;flex-shrink:0}
+.sb-bottom{padding:1rem;border-top:1px solid rgba(255,255,255,.1)}
+.sb-user{font-size:.78rem;color:#aaa;margin-bottom:.5rem}
+.sb-user strong{color:#fff;display:block}
+.sb-logout{display:block;text-align:center;padding:.4rem;background:rgba(255,255,255,.1);
+            border-radius:6px;color:#ddd;font-size:.8rem;text-decoration:none;transition:.15s}
+.sb-logout:hover{background:rgba(255,255,255,.2);color:#fff}
+
+/* ── Main ── */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid #e0e0e0;padding:.75rem 1.5rem;
+         display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:1.1rem;font-weight:700;color:var(--dark)}
+.topbar .live-badge{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:#666}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.content{flex:1;padding:1.5rem;overflow-y:auto}
+
+/* ── Stats ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:#fff;border-radius:12px;padding:1.1rem 1rem;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.stat-card .label{font-size:.75rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.stat-card .value{font-size:1.8rem;font-weight:800;color:var(--dark);margin:.2rem 0}
+.stat-card .sub{font-size:.75rem;color:#aaa}
+.stat-card.red .value{color:var(--red)}
+.stat-card.gold .value{color:var(--gold)}
+.stat-card.green .value{color:var(--green)}
+
+/* ── Section ── */
+.section{display:none}
+.section.active{display:block}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.section-header h2{font-size:1rem;font-weight:700;color:var(--dark)}
+.btn{padding:.5rem 1rem;border:none;border-radius:7px;font-weight:600;cursor:pointer;font-size:.85rem;transition:.15s}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:hover{opacity:.88}
+.btn-sm{padding:.3rem .7rem;font-size:.78rem;border-radius:5px}
+.btn-green{background:var(--green);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-ghost{background:#f0f0f0;color:#555}
+.btn-ghost:hover{background:#e0e0e0}
+.btn-danger{background:#e74c3c;color:#fff}
+
+/* ── Table ── */
+.table-wrap{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th{background:#fafafa;padding:.65rem .9rem;text-align:left;font-size:.75rem;
+   font-weight:700;color:#888;text-transform:uppercase;border-bottom:1px solid #eee}
+td{padding:.6rem .9rem;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fdfaf8}
+
+/* Status badges */
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:4px;font-size:.73rem;font-weight:700;text-transform:capitalize}
+.badge-received{background:#e3f2fd;color:#1565c0}
+.badge-preparing{background:#fff8e1;color:#f57f17}
+.badge-ready{background:#e8f5e9;color:#2e7d32}
+.badge-completed{background:#f3e5f5;color:#6a1b9a}
+.badge-cancelled{background:#ffebee;color:#c62828}
+
+/* Status select */
+.status-sel{padding:.25rem .5rem;border:1.5px solid #ddd;border-radius:5px;font-size:.8rem;cursor:pointer}
+.status-sel:focus{outline:none;border-color:var(--red)}
+
+/* ── Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+                align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:1.5rem;width:100%;max-width:480px;
+       box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto}
+.modal h3{font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--dark)}
+.form-row{margin-bottom:.9rem}
+.form-row label{display:block;font-size:.8rem;font-weight:600;color:#555;margin-bottom:.3rem}
+.form-row input,.form-row select,.form-row textarea{
+  width:100%;padding:.55rem .8rem;border:1.5px solid #ddd;border-radius:7px;font-size:.88rem}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{
+  outline:none;border-color:var(--red)}
+.modal-footer{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem}
+.form-row .check-row{display:flex;align-items:center;gap:.5rem}
+.form-row .check-row input{width:auto}
+
+/* Order detail */
+.order-detail{font-size:.82rem;max-width:300px}
+.od-items{background:#fafafa;border-radius:6px;padding:.5rem .7rem;margin-top:.25rem}
+.od-item{padding:.2rem 0;border-bottom:1px dashed #eee;display:flex;justify-content:space-between}
+.od-item:last-child{border-bottom:none}
+
+/* Tabs for filter */
+.filter-tabs{display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap}
+.filter-tab{padding:.35rem .75rem;border-radius:20px;font-size:.78rem;font-weight:600;
+             cursor:pointer;background:#f0f0f0;color:#666;transition:.15s;border:none}
+.filter-tab.active{background:var(--red);color:#fff}
+
+/* Settings */
+.settings-card{background:#fff;border-radius:12px;padding:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.06);
+                max-width:440px;margin-bottom:1rem}
+.settings-card h3{font-size:.9rem;font-weight:700;margin-bottom:.75rem;color:var(--dark)}
+.msg-box{padding:.5rem .8rem;border-radius:6px;font-size:.82rem;margin-top:.5rem;display:none}
+.msg-box.ok{background:#d4edda;color:#155724;display:block}
+.msg-box.err{background:#f8d7da;color:#721c24;display:block}
+
+@media(max-width:700px){
+  .sidebar{transform:translateX(-100%);transition:.25s}
+  .main{margin-left:0}
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <h2>🍛 Masala Kitchen</h2>
+    <p>Admin Panel</p>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-item active" onclick="showSection('orders',this)">
+      <svg class="sb-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      Orders
+    </div>
+    <div class="sb-item" onclick="showSection('menu',this)">
+      <svg class="sb-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+      </svg>
+      Menu Editor
+    </div>
+    <div class="sb-item" onclick="showSection('settings',this)">
+      <svg class="sb-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+      Settings
+    </div>
+  </nav>
+  <div class="sb-bottom">
+    <div class="sb-user">Logged in as<strong>{{ username }}</strong></div>
+    <a class="sb-logout" href="/admin/logout">Sign Out</a>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <h1 id="pageTitle">Orders</h1>
+    <div class="live-badge"><span class="live-dot"></span> Live</div>
+  </div>
+  <div class="content">
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="label">Total Orders</div>
+        <div class="value">{{ stats.total_orders }}</div>
+        <div class="sub">All time</div>
+      </div>
+      <div class="stat-card gold">
+        <div class="label">Today's Orders</div>
+        <div class="value">{{ stats.today_orders }}</div>
+        <div class="sub">Today</div>
+      </div>
+      <div class="stat-card green">
+        <div class="label">Today's Revenue</div>
+        <div class="value">£{{ "%.2f"|format(stats.today_revenue) }}</div>
+        <div class="sub">Today</div>
+      </div>
+      <div class="stat-card red">
+        <div class="label">Pending</div>
+        <div class="value">{{ stats.pending }}</div>
+        <div class="sub">Awaiting prep</div>
+      </div>
+    </div>
+
+    <!-- Orders Section -->
+    <div class="section active" id="sec-orders">
+      <div class="section-header">
+        <h2>All Orders</h2>
+        <button class="btn btn-ghost btn-sm" onclick="loadOrders()">↻ Refresh</button>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterOrders('all',this)">All</button>
+        <button class="filter-tab" onclick="filterOrders('received',this)">Received</button>
+        <button class="filter-tab" onclick="filterOrders('preparing',this)">Preparing</button>
+        <button class="filter-tab" onclick="filterOrders('ready',this)">Ready</button>
+        <button class="filter-tab" onclick="filterOrders('completed',this)">Completed</button>
+        <button class="filter-tab" onclick="filterOrders('cancelled',this)">Cancelled</button>
+      </div>
+      <div class="table-wrap">
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th>ID</th><th>Type</th><th>Customer</th><th>Items</th>
+              <th>Total</th><th>Payment</th><th>Status</th><th>Time</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Menu Section -->
+    <div class="section" id="sec-menu">
+      <div class="section-header">
+        <h2>Menu Items</h2>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Item</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Category</th><th>Name</th><th>Description</th><th>Price</th><th>Vegan</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="menuBody">
+            {% for item in menu_items %}
+            <tr id="mrow-{{ item.id }}" class="{{ 'inactive' if not item.active else '' }}">
+              <td>{{ item.category }}</td>
+              <td><strong>{{ item.name }}</strong></td>
+              <td style="color:#888;font-size:.8rem;max-width:200px">{{ item.description[:60] }}{% if item.description|length > 60 %}…{% endif %}</td>
+              <td>£{{ "%.2f"|format(item.price) }}</td>
+              <td>{{ '🌱' if item.vegan else '' }}</td>
+              <td><span class="badge {{ 'badge-ready' if item.active else 'badge-cancelled' }}">
+                {{ 'Active' if item.active else 'Hidden' }}</span></td>
+              <td>
+                <button class="btn btn-blue btn-sm" onclick='editItem({{ item|tojson }})'>Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteItem({{ item.id }}, '{{ item.name }}')">Delete</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="section" id="sec-settings">
+      <div class="settings-card">
+        <h3>Change Password</h3>
+        <div class="form-row"><label>Current Password</label>
+          <input id="cpCurrent" type="password" placeholder="Enter current password">
+        </div>
+        <div class="form-row"><label>New Password</label>
+          <input id="cpNew" type="password" placeholder="Min 6 characters">
+        </div>
+        <div class="form-row"><label>Confirm New Password</label>
+          <input id="cpConfirm" type="password" placeholder="Repeat new password">
+        </div>
+        <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+        <div class="msg-box" id="cpMsg"></div>
+      </div>
+      <div class="settings-card">
+        <h3>System Info</h3>
+        <p style="font-size:.83rem;color:#666;line-height:1.6">
+          Admin panel for Masala Kitchen.<br>
+          Data stored in SQLite — on Render free tier, data resets on each deploy.<br>
+          To persist data permanently, upgrade to a PostgreSQL addon.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Edit/Add Menu Modal -->
+<div class="modal-overlay" id="menuModal">
+  <div class="modal">
+    <h3 id="modalTitle">Add Menu Item</h3>
+    <input type="hidden" id="editId">
+    <div class="form-row"><label>Category</label>
+      <input id="mCat" type="text" placeholder="e.g. Starters, Mains, Desserts">
+    </div>
+    <div class="form-row"><label>Name</label>
+      <input id="mName" type="text" placeholder="Dish name">
+    </div>
+    <div class="form-row"><label>Description</label>
+      <textarea id="mDesc" rows="2" placeholder="Short description"></textarea>
+    </div>
+    <div class="form-row"><label>Price (£)</label>
+      <input id="mPrice" type="number" step="0.01" min="0" placeholder="9.99">
+    </div>
+    <div class="form-row"><label>Allergens (comma-separated)</label>
+      <input id="mAllergens" type="text" placeholder="e.g. nuts, dairy, gluten">
+    </div>
+    <div class="form-row">
+      <div class="check-row">
+        <input id="mVegan" type="checkbox">
+        <label for="mVegan" style="margin:0">Vegan</label>
+      </div>
+    </div>
+    <div class="form-row" id="activeRow">
+      <div class="check-row">
+        <input id="mActive" type="checkbox" checked>
+        <label for="mActive" style="margin:0">Active (visible on menu)</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeMenuModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMenuItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Navigation ──
+const sectionMap = {orders:'sec-orders',menu:'sec-menu',settings:'sec-settings'};
+const titleMap   = {orders:'Orders',menu:'Menu Editor',settings:'Settings'};
+function showSection(name, el) {
+  Object.values(sectionMap).forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById(sectionMap[name]).classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pageTitle').textContent = titleMap[name];
+  if (name === 'orders') loadOrders();
+}
+
+// ── Orders ──
+let allOrders = [];
+let currentFilter = 'all';
+
+function loadOrders() {
+  fetch('/admin/api/orders')
+    .then(r=>r.json())
+    .then(data => { allOrders = data; renderOrders(); });
+}
+
+function filterOrders(status, el) {
+  currentFilter = status;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderOrders();
+}
+
+function renderOrders() {
+  const tbody = document.getElementById('ordersBody');
+  const rows  = currentFilter === 'all' ? allOrders : allOrders.filter(o=>o.status===currentFilter);
+  tbody.innerHTML = '';
+  rows.forEach(o => {
+    const itemSummary = o.items.map(it=>`${it.qty||1}× ${it.name}`).join(', ');
+    const short = itemSummary.length > 40 ? itemSummary.slice(0,40)+'…' : itemSummary;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><a href="/order/status?id=${o.id}" target="_blank" style="color:var(--red);font-weight:700">${o.id}</a></td>
+      <td>${o.order_type}</td>
+      <td>
+        <strong>${esc(o.name)}</strong><br>
+        <small style="color:#888">${esc(o.phone)}</small>
+        ${o.address ? `<br><small style="color:#aaa">${esc(o.address)}, ${esc(o.postcode)}</small>` : ''}
+      </td>
+      <td title="${esc(itemSummary)}" style="font-size:.8rem;color:#666">${esc(short)}</td>
+      <td><strong>£${o.total.toFixed(2)}</strong></td>
+      <td>
+        <span class="badge ${o.payment_status==='paid'?'badge-ready':'badge-preparing'}">
+          ${o.payment_method} / ${o.payment_status}
+        </span>
+      </td>
+      <td>
+        <select class="status-sel" onchange="updateStatus('${o.id}',this.value)">
+          ${['received','preparing','ready','completed','cancelled'].map(s=>
+            `<option value="${s}" ${s===o.status?'selected':''}>${cap(s)}</option>`).join('')}
+        </select>
+      </td>
+      <td style="font-size:.75rem;color:#aaa">${fmtDate(o.created_at)}</td>
+      <td>
+        ${o.notes ? `<span title="${esc(o.notes)}" style="cursor:help;color:#888">📝</span>` : ''}
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:#aaa">No orders found</td></tr>';
+  }
+}
+
+function updateStatus(oid, status) {
+  fetch(`/admin/api/order/${oid}/status`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status})
+  }).then(r=>r.json()).then(d=>{
+    if (!d.success) alert('Failed to update status');
+    else {
+      const o = allOrders.find(x=>x.id===oid);
+      if (o) o.status = status;
+    }
+  });
+}
+
+// ── Menu ──
+function openAddModal() {
+  document.getElementById('modalTitle').textContent = 'Add Menu Item';
+  document.getElementById('editId').value = '';
+  document.getElementById('mCat').value = '';
+  document.getElementById('mName').value = '';
+  document.getElementById('mDesc').value = '';
+  document.getElementById('mPrice').value = '';
+  document.getElementById('mAllergens').value = '';
+  document.getElementById('mVegan').checked = false;
+  document.getElementById('mActive').checked = true;
+  document.getElementById('activeRow').style.display = 'none';
+  document.getElementById('menuModal').classList.add('show');
+}
+
+function editItem(item) {
+  document.getElementById('modalTitle').textContent = 'Edit Menu Item';
+  document.getElementById('editId').value = item.id;
+  document.getElementById('mCat').value   = item.category;
+  document.getElementById('mName').value  = item.name;
+  document.getElementById('mDesc').value  = item.description;
+  document.getElementById('mPrice').value = item.price;
+  document.getElementById('mAllergens').value = Array.isArray(item.allergens) ? item.allergens.join(', ') : '';
+  document.getElementById('mVegan').checked  = !!item.vegan;
+  document.getElementById('mActive').checked = !!item.active;
+  document.getElementById('activeRow').style.display = '';
+  document.getElementById('menuModal').classList.add('show');
+}
+
+function closeMenuModal() {
+  document.getElementById('menuModal').classList.remove('show');
+}
+
+function saveMenuItem() {
+  const eid  = document.getElementById('editId').value;
+  const data = {
+    category:    document.getElementById('mCat').value.trim(),
+    name:        document.getElementById('mName').value.trim(),
+    description: document.getElementById('mDesc').value.trim(),
+    price:       document.getElementById('mPrice').value,
+    allergens:   document.getElementById('mAllergens').value,
+    vegan:       document.getElementById('mVegan').checked,
+    active:      document.getElementById('mActive').checked,
+  };
+  if (!data.category || !data.name || !data.price) { alert('Category, name and price are required.'); return; }
+  const url    = eid ? `/admin/api/menu/${eid}` : '/admin/api/menu';
+  const method = eid ? 'PUT' : 'POST';
+  fetch(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)})
+    .then(r=>r.json())
+    .then(d => {
+      if (d.success) { closeMenuModal(); location.reload(); }
+      else alert('Error: ' + (d.error || 'unknown'));
+    });
+}
+
+function deleteItem(id, name) {
+  if (!confirm(`Hide "${name}" from the menu?`)) return;
+  fetch(`/admin/api/menu/${id}`, {method:'DELETE'})
+    .then(r=>r.json())
+    .then(d => { if (d.success) location.reload(); else alert('Error'); });
+}
+
+// ── Settings ──
+function changePassword() {
+  const cur  = document.getElementById('cpCurrent').value;
+  const nw   = document.getElementById('cpNew').value;
+  const conf = document.getElementById('cpConfirm').value;
+  const msg  = document.getElementById('cpMsg');
+  if (nw !== conf) { showMsg(msg,'Passwords do not match','err'); return; }
+  fetch('/admin/api/change-password',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({current:cur,new:nw})
+  }).then(r=>r.json()).then(d=>{
+    if (d.success) { showMsg(msg,'Password updated successfully','ok');
+      document.getElementById('cpCurrent').value='';
+      document.getElementById('cpNew').value='';
+      document.getElementById('cpConfirm').value='';
+    } else showMsg(msg, d.error || 'Error','err');
+  });
+}
+function showMsg(el,txt,cls){el.textContent=txt;el.className='msg-box '+cls;setTimeout(()=>el.className='msg-box',4000)}
+
+// ── Utilities ──
+function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML }
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1) }
+function fmtDate(s){
+  try { return new Date(s).toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+  catch{ return s; }
+}
+
+// Auto-refresh orders every 30s
+loadOrders();
+setInterval(() => {
+  if (document.getElementById('sec-orders').classList.contains('active')) loadOrders();
+}, 30000);
+</script>
+</body>
+</html>
