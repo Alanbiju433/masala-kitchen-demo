@@ -18,11 +18,14 @@ except ImportError:
     STRIPE_ON  = False
     STRIPE_PUB = ''
 
-# ── App ────────────────────────────────────────────────────────────────────────
+# ── App ──────────────────────────────────────────────────────────────
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'masala-kitchen-dev-key-change-in-prod')
 
-DB = os.path.join(os.path.dirname(__file__), 'masala.db')
+# Get the app's directory
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+DB = os.path.join(APP_DIR, 'masala.db')
+
 _openai_client = None
 
 def get_openai_client():
@@ -31,9 +34,9 @@ def get_openai_client():
         _openai_client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
     return _openai_client
 
-with open('data/restaurant.json') as f:
+# Load restaurant data with proper path
+with open(os.path.join(APP_DIR, 'data/restaurant.json')) as f:
     RESTAURANT = json.load(f)
-
 # ── Database helpers ───────────────────────────────────────────────────────────
 def get_db():
     db = getattr(g, '_db', None)
