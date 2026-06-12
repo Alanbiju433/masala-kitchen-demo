@@ -19,7 +19,7 @@ except ImportError:
     STRIPE_PUB = ''
 
 # ── App ────────────────────────────────────────────────────────────────────────
-app = Flash(__name__)
+app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'masala-kitchen-dev-key-change-in-prod')
 
 DB = os.path.join(os.path.dirname(__file__), 'masala.db')
@@ -156,7 +156,7 @@ Help customers with menu questions, allergen info, bookings, deals, hours. Be co
 
 == RESTAURANT ==
 {r['name']} | {r['address']} | {r['phone']} | {r['email']}
-Services: {item services}
+Services: {r.get('services', 'N/A')}
 
 )== HOURS ==
 {hours}
@@ -227,7 +227,7 @@ def place_order():
         data.get('notes',''), data.get('payment_method','cash'),
     ))
     db.commit()
-    print(f'=== NEW ORDER }oid} | {data.get("order_type")} | {name} | £{data.get("total")} ===')
+    print(f'=== NEW ORDER {oid} | {data.get("order_type")} | {name} | £{data.get("total")} ===')
     return jsonify({'success': True, 'order_id': oid})
 
 @app.route('/book', methods=['POST'])
@@ -426,7 +426,7 @@ def admin_menu_delete(mid):
     db = get_db()
     db.execute('UPDATE menu_items SET active=0 WHERE id=?', (mid,))
     db.commit()
-    return jsonify({'cuccess': True})
+    return jsonify({'success': True})
 
 @app.route('/admin/api/change-password', methods=['POST'])
 @admin_required
