@@ -1,544 +1,940 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{{ restaurant.name }} â {{ restaurant.tagline }}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --gold: #c9933a;
-      --gold-light: #e8b96a;
-      --dark: #1a1009;
-      --dark2: #2a1e0e;
-      --cream: #fdf6ec;
-      --text: #3d2b0e;
-      --muted: #8a6f50;
-      --chat-bg: #fff;
-      --radius: 14px;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { font-family: 'Inter', sans-serif; color: var(--text); background: var(--cream); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{{ restaurant.name }} | Authentic Indian Restaurant, Northampton</title>
+<meta name="description" content="Award-winning Indian cuisine in the heart of Northampton. Dine-in, takeaway and collection. 100% Halal certified.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B2A;--navy2:#162232;--gold:#C9963E;--gold2:#B8852D;--goldl:#F0C980;
+  --cream:#FDF8F0;--warm:#F5EFE0;--white:#FFFFFF;--text:#1A1A2E;--text2:#6B6B85;
+  --border:#E8DDD0;--green:#27AE60;--red:#C0392B;--shadow:0 4px 24px rgba(0,0,0,.12);--r:12px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;color:var(--text);background:var(--white);line-height:1.6;overflow-x:hidden}
+img{max-width:100%;display:block}
+button{cursor:pointer;border:none;outline:none;font-family:inherit}
+input,select,textarea{font-family:inherit;outline:none}
+a{text-decoration:none;color:inherit}
+.container{max-width:1160px;margin:0 auto;padding:0 24px}
+.section{padding:80px 0}
+h1,h2,h3{font-family:'Playfair Display',serif}
+.sec-title{font-size:clamp(1.8rem,4vw,2.4rem);color:var(--navy);margin-bottom:8px;text-align:center}
+.sec-sub{text-align:center;color:var(--text2);margin-bottom:48px;font-size:.95rem}
 
-    /* âââ NAV âââ */
-    nav {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(26,16,9,0.97); backdrop-filter: blur(10px);
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 5vw; height: 64px;
-    }
-    .nav-logo { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.3rem; text-decoration: none; }
-    .nav-links { display: flex; gap: 2rem; }
-    .nav-links a { color: #d4b896; text-decoration: none; font-size: 0.88rem; font-weight: 500; letter-spacing: 0.04em; transition: color .2s; }
-    .nav-links a:hover { color: var(--gold-light); }
-    .nav-cta {
-      background: var(--gold); color: #fff; border: none; border-radius: 6px;
-      padding: 8px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
-      text-decoration: none; transition: background .2s;
-    }
-    .nav-cta:hover { background: var(--gold-light); }
+/* NAV */
+#hdr{position:sticky;top:0;z-index:100;background:var(--navy);transition:box-shadow .3s}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--white)}
+.brand-icon{width:34px;height:34px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.nav-links{display:flex;list-style:none;gap:24px}
+.nav-links a{color:rgba(255,255,255,.75);font-size:.88rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--gold)}
+.nav-acts{display:flex;align-items:center;gap:10px}
+.cart-btn{position:relative;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);width:42px;height:42px;border-radius:10px;color:var(--white);display:flex;align-items:center;justify-content:center;transition:background .2s}
+.cart-btn:hover{background:rgba(255,255,255,.15)}
+.cart-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.cart-badge{position:absolute;top:-6px;right:-6px;background:var(--gold);color:var(--white);font-size:.6rem;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;padding:0 4px}
+.btn-gold{background:var(--gold);color:var(--white);padding:10px 22px;border-radius:8px;font-size:.9rem;font-weight:600;transition:background .2s}
+.btn-gold:hover{background:var(--gold2)}
 
-    /* âââ HERO âââ */
-    .hero {
-      min-height: 92vh; display: flex; align-items: center; justify-content: center;
-      text-align: center; position: relative; overflow: hidden;
-      background: linear-gradient(135deg, #1a1009 0%, #3b1f05 50%, #1a1009 100%);
-    }
-    .hero::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9933a' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    }
-    .hero-content { position: relative; z-index: 1; padding: 2rem; }
-    .hero-badge {
-      display: inline-block; background: rgba(201,147,58,0.15); border: 1px solid rgba(201,147,58,0.4);
-      color: var(--gold-light); padding: 6px 16px; border-radius: 999px;
-      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.5rem;
-    }
-    .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.8rem, 7vw, 5.5rem); color: #fff; line-height: 1.1; margin-bottom: 1rem; }
-    .hero h1 span { color: var(--gold); }
-    .hero p { color: #c4a882; font-size: clamp(1rem, 2vw, 1.2rem); max-width: 520px; margin: 0 auto 2rem; line-height: 1.6; }
-    .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-    .btn-primary {
-      background: var(--gold); color: #fff; padding: 14px 28px; border-radius: 8px;
-      font-weight: 600; font-size: 0.95rem; text-decoration: none; border: none; cursor: pointer; transition: background .2s;
-    }
-    .btn-primary:hover { background: var(--gold-light); }
-    .btn-outline {
-      background: transparent; color: var(--gold-light); padding: 14px 28px; border-radius: 8px;
-      font-weight: 600; font-size: 0.95rem; text-decoration: none; border: 2px solid rgba(201,147,58,0.5); cursor: pointer; transition: all .2s;
-    }
-    .btn-outline:hover { border-color: var(--gold-light); color: #fff; }
+/* HERO */
+.hero{position:relative;min-height:88vh;display:flex;align-items:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1542367592-8849eb950fd8?w=1600&h=1000&fit=crop&auto=format&q=80') center/cover no-repeat;filter:brightness(.3)}
+.hero-inner{position:relative;z-index:1;padding:80px 0}
+.hero-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(201,150,62,.15);border:1px solid rgba(201,150,62,.35);color:var(--goldl);font-size:.82rem;font-weight:600;padding:6px 16px;border-radius:50px;margin-bottom:20px;letter-spacing:.06em;text-transform:uppercase}
+.hero h1{font-size:clamp(2.8rem,7vw,4.5rem);color:var(--white);font-weight:700;line-height:1.1;margin-bottom:14px}
+.hero-tag{font-size:1.15rem;color:rgba(255,255,255,.7);margin-bottom:36px}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:52px}
+.btn-hero{padding:15px 34px;border-radius:50px;font-size:1rem;font-weight:700;display:inline-flex;align-items:center;gap:8px;transition:all .25s}
+.btn-hero.primary{background:var(--gold);color:var(--white)}
+.btn-hero.primary:hover{background:var(--gold2);transform:translateY(-2px)}
+.btn-hero.outline{background:transparent;color:var(--white);border:2px solid rgba(255,255,255,.45)}
+.btn-hero.outline:hover{border-color:var(--white);background:rgba(255,255,255,.08)}
+.hero-stats{display:flex;gap:40px;flex-wrap:wrap}
+.stat strong{display:block;font-size:1.9rem;color:var(--goldl);font-family:'Playfair Display',serif;line-height:1}
+.stat span{font-size:.75rem;color:rgba(255,255,255,.55);letter-spacing:.07em;text-transform:uppercase}
 
-    .hero-stats { display: flex; gap: 3rem; justify-content: center; margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); }
-    .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); }
-    .stat-lbl { color: #8a7060; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+/* ORDER BAR */
+.ot-bar{background:var(--white);border-bottom:2px solid var(--border);position:sticky;top:61px;z-index:90;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.ot-inner{display:flex;align-items:center;gap:16px;padding:10px 0;flex-wrap:wrap}
+.ot-label{font-size:.82rem;color:var(--text2);font-weight:600;white-space:nowrap}
+.ot-btns{display:flex;gap:6px}
+.ot-btn{padding:7px 18px;border-radius:50px;font-size:.85rem;font-weight:600;border:2px solid var(--border);background:var(--white);color:var(--text2);transition:all .2s;display:flex;align-items:center;gap:6px}
+.ot-btn.active{background:var(--navy);border-color:var(--navy);color:var(--white)}
+.ot-btn:hover:not(.active){border-color:var(--navy);color:var(--navy)}
+.halal-tag{margin-left:auto;background:var(--green);color:var(--white);font-size:.72rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:.04em;white-space:nowrap}
 
-    /* âââ SECTIONS âââ */
-    section { padding: 90px 5vw; }
-    .section-label { color: var(--gold); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.5rem; }
-    .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.8rem); margin-bottom: 0.8rem; }
-    .section-sub { color: var(--muted); max-width: 560px; line-height: 1.7; margin-bottom: 3rem; }
+/* MENU */
+.menu-tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:40px}
+.tab-btn{padding:10px 26px;border-radius:50px;font-size:.9rem;font-weight:600;background:var(--warm);color:var(--text2);border:2px solid transparent;transition:all .2s}
+.tab-btn:hover,.tab-btn.active{background:var(--navy);color:var(--white)}
+.menu-cat{display:none}
+.menu-cat.active{display:block}
+.dish-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:22px}
+.dish-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:all .28s}
+.dish-card:hover{box-shadow:var(--shadow);transform:translateY(-4px)}
+.d-img-wrap{position:relative;height:195px;overflow:hidden;background:var(--warm);flex-shrink:0}
+.d-img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.dish-card:hover .d-img{transform:scale(1.06)}
+.vegan-badge{position:absolute;top:10px;left:10px;background:var(--green);color:var(--white);font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.04em}
+.d-info{padding:15px 17px 17px;display:flex;flex-direction:column;flex:1}
+.d-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px}
+.d-name{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--navy);line-height:1.3}
+.d-price{font-size:1.05rem;font-weight:700;color:var(--gold);white-space:nowrap;flex-shrink:0}
+.d-desc{font-size:.83rem;color:var(--text2);line-height:1.55;flex:1;margin-bottom:8px}
+.d-allergens{font-size:.72rem;color:var(--text2);opacity:.65;margin-bottom:10px}
+.add-btn{width:100%;background:var(--navy);color:var(--white);padding:11px;border-radius:8px;font-size:.88rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .2s;margin-top:auto}
+.add-btn:hover{background:var(--gold)}
+.add-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.8;stroke-linecap:round}
 
-    /* âââ DEALS âââ */
-    #deals { background: var(--dark); }
-    #deals .section-title, #deals .section-label { color: var(--gold); }
-    #deals .section-sub { color: #9a8070; }
-    .deals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
-    .deal-card {
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(201,147,58,0.2);
-      border-radius: var(--radius); padding: 1.8rem; transition: border-color .2s, transform .2s;
-    }
-    .deal-card:hover { border-color: var(--gold); transform: translateY(-3px); }
-    .deal-icon { font-size: 2rem; margin-bottom: 1rem; }
-    .deal-card h3 { color: #fff; font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
-    .deal-card p { color: #9a8070; font-size: 0.88rem; line-height: 1.6; }
-    .deal-valid { display: inline-block; margin-top: 0.8rem; background: rgba(201,147,58,0.12); color: var(--gold-light); font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+/* DEALS */
+.deals-sec{background:var(--navy)}
+.deals-sec .sec-title{color:var(--white)}
+.deals-sec .sec-sub{color:rgba(255,255,255,.55)}
+.deals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px}
+.deal-card{background:rgba(255,255,255,.06);border:1px solid rgba(201,150,62,.28);border-radius:var(--r);padding:26px 22px}
+.deal-card h3{font-family:'Playfair Display',serif;color:var(--goldl);font-size:1.05rem;margin-bottom:9px}
+.deal-card p{color:rgba(255,255,255,.75);font-size:.88rem;line-height:1.6;margin-bottom:12px}
+.deal-valid{display:inline-block;background:rgba(201,150,62,.18);color:var(--goldl);font-size:.73rem;font-weight:600;padding:3px 11px;border-radius:20px}
 
-    /* âââ MENU âââ */
-    #menu { background: var(--cream); }
-    .menu-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
-    .tab-btn {
-      padding: 8px 18px; border-radius: 999px; border: 2px solid rgba(201,147,58,0.3);
-      background: transparent; color: var(--muted); font-size: 0.85rem; font-weight: 500;
-      cursor: pointer; transition: all .2s;
-    }
-    .tab-btn.active, .tab-btn:hover { background: var(--gold); border-color: var(--gold); color: #fff; }
-    .menu-category { display: none; }
-    .menu-category.active { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; }
-    .menu-item {
-      background: #fff; border-radius: 12px; padding: 1.3rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; justify-content: space-between; gap: 1rem;
-      transition: box-shadow .2s; border: 1px solid transparent;
-    }
-    .menu-item:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.1); border-color: rgba(201,147,58,0.2); }
-    .item-info { flex: 1; }
-    .item-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem; }
-    .item-desc { color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
-    .item-tags { display: flex; gap: 4px; margin-top: 0.5rem; flex-wrap: wrap; }
-    .tag { font-size: 0.68rem; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
-    .tag-vegan { background: #e8f5e9; color: #2e7d32; }
-    .tag-allergen { background: #fff3e0; color: #e65100; }
-    .item-price { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--gold); font-weight: 700; white-space: nowrap; }
+/* ABOUT */
+.about-sec{background:var(--cream)}
+.about-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:56px;align-items:center}
+.about-img-wrap{border-radius:16px;overflow:hidden;height:440px;box-shadow:var(--shadow)}
+.about-img{width:100%;height:100%;object-fit:cover}
+.about-content h2{font-size:clamp(1.8rem,3.5vw,2.3rem);color:var(--navy);margin-bottom:14px}
+.about-content p{color:var(--text2);line-height:1.78;margin-bottom:14px;font-size:.95rem}
+.about-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.a-badge{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--border);border-radius:50px;padding:8px 16px;font-size:.83rem;font-weight:600;color:var(--navy)}
+.a-badge svg{width:15px;height:15px;stroke-width:2;fill:none;flex-shrink:0}
 
-    /* âââ ABOUT âââ */
-    #about { background: #fff; }
-    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
-    @media (max-width: 768px) { .about-grid { grid-template-columns: 1fr; } }
-    .about-visual {
-      background: linear-gradient(135deg, #3b1f05, #1a1009);
-      border-radius: 20px; height: 380px; display: flex; align-items: center; justify-content: center;
-      font-size: 6rem; position: relative; overflow: hidden;
-    }
-    .about-visual::after {
-      content: 'ð'; font-size: 10rem; opacity: 0.15; position: absolute; bottom: -1rem; right: -1rem; transform: rotate(-15deg);
-    }
-    .about-features { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: 2rem; }
-    .feature { display: flex; gap: 0.7rem; align-items: flex-start; }
-    .feature-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
-    .feature h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem; }
-    .feature p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+/* BOOK */
+.book-sec{background:var(--warm)}
+.book-split{display:grid;grid-template-columns:1fr 1.4fr;gap:56px;align-items:start}
+.book-split h2{font-size:clamp(1.8rem,3.5vw,2.2rem);color:var(--navy);margin-bottom:12px}
+.book-split>div>p{color:var(--text2);line-height:1.72;margin-bottom:22px;font-size:.93rem}
+.bi-item{display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--text);margin-bottom:11px}
+.bi-item svg{width:17px;height:17px;stroke:var(--gold);fill:none;stroke-width:2;flex-shrink:0}
+.book-form{background:var(--white);border-radius:16px;padding:30px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:13px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.f-input,.f-select,.f-textarea{width:100%;padding:12px 15px;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;color:var(--text);background:var(--white);transition:border-color .2s}
+.f-input:focus,.f-select:focus,.f-textarea:focus{border-color:var(--gold)}
+.f-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%23888' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:16px;padding-right:36px}
+.f-textarea{height:76px;resize:vertical}
+.submit-btn{background:var(--gold);color:var(--white);padding:13px;border-radius:9px;font-size:.97rem;font-weight:700;width:100%;transition:background .2s}
+.submit-btn:hover{background:var(--gold2)}
 
-    /* âââ CONTACT âââ */
-    #contact { background: var(--dark2); }
-    #contact .section-title { color: #fff; }
-    #contact .section-label { color: var(--gold); }
-    #contact .section-sub { color: #9a8070; }
-    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
-    @media (max-width: 768px) { .contact-grid { grid-template-columns: 1fr; } }
-    .contact-info p { color: #c4a882; line-height: 1.8; font-size: 0.9rem; margin-bottom: 0.3rem; }
-    .contact-info strong { color: #fff; }
-    .hours-table { width: 100%; border-collapse: collapse; }
-    .hours-table td { padding: 6px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .hours-table td:first-child { color: #9a8070; width: 120px; }
-    .hours-table td:last-child { color: #c4a882; text-align: right; }
+/* CONTACT */
+.contact-sec{background:var(--navy)}
+.contact-sec .sec-title{color:var(--white)}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px}
+.c-col h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--goldl);margin-bottom:22px}
+.hrs-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:.88rem}
+.hrs-row span:first-child{color:rgba(255,255,255,.55)}
+.hrs-row span:last-child{color:var(--white);font-weight:500}
+.c-item{display:flex;align-items:flex-start;gap:11px;margin-bottom:14px;color:rgba(255,255,255,.78);font-size:.92rem;line-height:1.55}
+.c-item svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.8;flex-shrink:0;margin-top:2px}
 
-    /* âââ FOOTER âââ */
-    footer {
-      background: var(--dark); text-align: center; padding: 2rem 5vw;
-      color: #5a4030; font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05);
-    }
-    footer a { color: var(--gold); text-decoration: none; }
+/* FOOTER */
+footer{background:#07101A;padding:22px 0}
+.foot-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.foot-inner span{color:rgba(255,255,255,.4);font-size:.82rem}
+.foot-brand{color:var(--goldl) !important;font-family:'Playfair Display',serif;font-size:.95rem !important}
 
-    /* âââ CHAT BUBBLE âââ */
-    #chat-bubble {
-      position: fixed; bottom: 28px; right: 28px; z-index: 1000;
-      width: 60px; height: 60px; border-radius: 50%;
-      background: var(--gold); border: none; cursor: pointer;
-      box-shadow: 0 6px 24px rgba(201,147,58,0.5);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.6rem; transition: transform .2s, box-shadow .2s;
-    }
-    #chat-bubble:hover { transform: scale(1.08); box-shadow: 0 8px 32px rgba(201,147,58,0.65); }
-    #chat-bubble.open { background: #555; box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
-    .chat-badge {
-      position: absolute; top: -2px; right: -2px;
-      background: #e53935; color: #fff; border-radius: 50%; width: 18px; height: 18px;
-      font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
-      border: 2px solid var(--cream);
-    }
+/* CART DRAWER */
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+.cart-overlay.open{opacity:1;pointer-events:auto}
+.cart-drawer{position:fixed;right:0;top:0;height:100vh;width:min(420px,100vw);background:var(--white);z-index:201;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-6px 0 48px rgba(0,0,0,.22)}
+.cart-drawer.open{transform:translateX(0)}
+.cart-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0}
+.cart-hdr h3{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--navy)}
+.cart-hdr-r{display:flex;align-items:center;gap:10px}
+.cart-ot{background:var(--warm);color:var(--navy);font-size:.73rem;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid var(--border)}
+.cart-x{background:none;width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--text2);transition:background .2s}
+.cart-x:hover{background:var(--warm)}
+.cart-body{flex:1;overflow-y:auto;padding:14px 22px}
+.cart-empty{text-align:center;color:var(--text2);padding:50px 16px}
+.cart-empty svg{width:44px;height:44px;stroke:var(--border);fill:none;stroke-width:1.5;margin:0 auto 14px}
+.cart-empty p{font-size:.9rem;line-height:1.6}
+.ci{display:flex;align-items:flex-start;gap:10px;padding:13px 0;border-bottom:1px solid var(--border)}
+.ci:last-child{border-bottom:none}
+.ci-info{flex:1;min-width:0}
+.ci-name{font-weight:600;font-size:.93rem;color:var(--navy);margin-bottom:2px}
+.ci-meta{font-size:.76rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci-price{font-weight:700;color:var(--gold);font-size:.93rem;white-space:nowrap;flex-shrink:0}
+.ci-qty{display:flex;align-items:center;gap:7px;margin-top:7px}
+.ci-qty button{width:24px;height:24px;border-radius:6px;background:var(--warm);color:var(--navy);font-size:.9rem;display:flex;align-items:center;justify-content:center;font-weight:700;transition:all .2s}
+.ci-qty button:hover{background:var(--navy);color:var(--white)}
+.ci-qty span{font-weight:600;min-width:18px;text-align:center;font-size:.9rem}
+.cart-foot{padding:18px 22px;border-top:1px solid var(--border);flex-shrink:0}
+.cart-tot-row{display:flex;justify-content:space-between;margin-bottom:14px}
+.cart-tot-lbl{color:var(--text2);font-size:.88rem}
+.cart-tot-amt{font-size:1.28rem;font-weight:700;color:var(--navy);font-family:'Playfair Display',serif}
+.co-btn{width:100%;background:var(--gold);color:var(--white);padding:14px;border-radius:9px;font-size:.97rem;font-weight:700;transition:background .2s}
+.co-btn:hover{background:var(--gold2)}
 
-    /* âââ CHAT WINDOW âââ */
-    #chat-window {
-      position: fixed; bottom: 100px; right: 28px; z-index: 999;
-      width: 370px; max-height: 560px; border-radius: 18px;
-      background: var(--chat-bg); box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-      display: flex; flex-direction: column; overflow: hidden;
-      transform: translateY(20px) scale(0.95); opacity: 0;
-      pointer-events: none; transition: all .25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    #chat-window.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
-    @media (max-width: 420px) { #chat-window { width: calc(100vw - 20px); right: 10px; bottom: 90px; } }
+/* MODALS */
+.m-overlay{position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:300;display:none;align-items:center;justify-content:center;padding:16px}
+.m-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:16px;width:100%;max-width:478px;max-height:92vh;overflow-y:auto;display:flex;flex-direction:column}
+.m-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0}
+.m-hdr h3{font-family:'Playfair Display',serif;font-size:1.22rem;color:var(--navy)}
+.m-x{background:none;width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--text2);transition:background .2s}
+.m-x:hover{background:var(--warm)}
+.m-body{padding:22px;display:flex;flex-direction:column;gap:17px}
+.m-foot{padding:18px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.m-price{font-size:1.18rem;font-weight:700;color:var(--navy);font-family:'Playfair Display',serif}
 
-    .chat-header {
-      background: linear-gradient(135deg, #3b1f05, #1a1009);
-      padding: 1rem 1.2rem; display: flex; align-items: center; gap: 0.8rem; flex-shrink: 0;
-    }
-    .chat-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
-    .chat-header-info h3 { color: #fff; font-size: 0.95rem; font-weight: 600; }
-    .chat-status { color: #7dbf6e; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; }
-    .chat-status::before { content: ''; width: 7px; height: 7px; background: #7dbf6e; border-radius: 50%; }
-    .chat-header-actions { margin-left: auto; display: flex; gap: 0.4rem; }
-    .chat-header-actions button {
-      background: rgba(255,255,255,0.1); border: none; color: #fff; border-radius: 6px;
-      padding: 4px 8px; font-size: 0.75rem; cursor: pointer; transition: background .2s;
-    }
-    .chat-header-actions button:hover { background: rgba(255,255,255,0.2); }
+/* Customise */
+.c-desc{color:var(--text2);font-size:.88rem;font-style:italic;line-height:1.55}
+.opt-sec label{display:block;font-size:.78rem;font-weight:700;color:var(--navy);margin-bottom:9px;text-transform:uppercase;letter-spacing:.06em}
+.pill-grp{display:flex;flex-wrap:wrap;gap:7px}
+.pill{padding:7px 16px;border-radius:50px;font-size:.83rem;font-weight:600;border:2px solid var(--border);background:var(--white);color:var(--text2);transition:all .2s;cursor:pointer}
+.pill.active{background:var(--navy);border-color:var(--navy);color:var(--white)}
+.pill:hover:not(.active){border-color:var(--navy);color:var(--navy)}
+.qty-wrap{display:flex;align-items:center;gap:14px}
+.qty-btn{width:34px;height:34px;border-radius:8px;background:var(--warm);color:var(--navy);font-size:1.1rem;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.qty-btn:hover{background:var(--navy);color:var(--white)}
+.qty-num{font-size:1.05rem;font-weight:700;min-width:22px;text-align:center}
+.notes-ta{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:.88rem;height:74px;resize:none;transition:border-color .2s}
+.notes-ta:focus{border-color:var(--gold)}
+.m-add-btn{background:var(--gold);color:var(--white);padding:12px 26px;border-radius:9px;font-size:.93rem;font-weight:700;transition:background .2s;flex-shrink:0}
+.m-add-btn:hover{background:var(--gold2)}
 
-    #chat-messages {
-      flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;
-      background: #f9f5f0;
-    }
-    #chat-messages::-webkit-scrollbar { width: 4px; }
-    #chat-messages::-webkit-scrollbar-track { background: transparent; }
-    #chat-messages::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+/* Checkout */
+.co-modal{max-width:520px}
+.co-sum{background:var(--cream);border-radius:10px;padding:14px 16px;margin-bottom:4px}
+.co-irow{display:flex;justify-content:space-between;font-size:.86rem;padding:3px 0;color:var(--text)}
+.co-hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+.co-tot{display:flex;justify-content:space-between;font-weight:700;font-size:.97rem;color:var(--navy)}
+.co-sec h4{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--navy);margin-bottom:13px}
+.co-in{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;color:var(--text);margin-bottom:11px;transition:border-color .2s}
+.co-in:focus{border-color:var(--gold)}
+.co-sel{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;color:var(--text);background:var(--white);margin-bottom:11px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%23888' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:16px;padding-right:36px;transition:border-color .2s}
+.co-sel:focus{border-color:var(--gold)}
+.co-ta{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;color:var(--text);height:74px;resize:none;transition:border-color .2s}
+.co-ta:focus{border-color:var(--gold)}
+.place-btn{flex:1;background:var(--gold);color:var(--white);padding:13px;border-radius:9px;font-size:.97rem;font-weight:700;transition:background .2s}
+.place-btn:hover{background:var(--gold2)}
 
-    .msg { max-width: 82%; animation: fadeUp .2s ease; }
-    @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-    .msg.bot { align-self: flex-start; }
-    .msg.user { align-self: flex-end; }
-    .msg-bubble {
-      padding: 10px 14px; border-radius: 16px; font-size: 0.88rem; line-height: 1.55;
-    }
-    .msg.bot .msg-bubble { background: #fff; color: var(--text); border-radius: 16px 16px 16px 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
-    .msg.user .msg-bubble { background: var(--gold); color: #fff; border-radius: 16px 16px 4px 16px; }
-    .msg-time { font-size: 0.68rem; color: #bbb; margin-top: 4px; padding: 0 4px; }
-    .msg.user .msg-time { text-align: right; }
+/* Success */
+.suc-modal{text-align:center;padding:44px 28px;align-items:center;max-width:380px}
+.suc-icon{width:68px;height:68px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:1.9rem;color:var(--white)}
+.suc-modal h3{font-family:'Playfair Display',serif;font-size:1.45rem;color:var(--navy);margin-bottom:10px}
+.suc-modal p{color:var(--text2);margin-bottom:26px;font-size:.92rem;line-height:1.65}
+.suc-close{background:var(--gold);color:var(--white);padding:11px 30px;border-radius:50px;font-size:.92rem;font-weight:700}
 
-    .typing-indicator { align-self: flex-start; }
-    .typing-dots { display: flex; gap: 4px; padding: 12px 16px; background: #fff; border-radius: 16px 16px 16px 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); width: fit-content; }
-    .typing-dots span { width: 7px; height: 7px; background: #ccc; border-radius: 50%; animation: bounce 1.2s infinite; }
-    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%,60%,100% { transform:translateY(0); } 30% { transform:translateY(-5px); } }
+/* CHAT */
+#chat-bubble{position:fixed;bottom:26px;right:26px;z-index:400;width:58px;height:58px;border-radius:50%;background:var(--gold);color:var(--white);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(201,150,62,.55);transition:all .3s}
+#chat-bubble:hover{transform:scale(1.09);box-shadow:0 6px 28px rgba(201,150,62,.65)}
+#chat-bubble svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2}
+.chat-notif{position:absolute;top:-4px;right:-4px;background:var(--red);color:var(--white);font-size:.6rem;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;padding:0 4px}
+#chat-win{position:fixed;bottom:98px;right:26px;width:355px;background:var(--white);border-radius:16px;box-shadow:0 14px 52px rgba(0,0,0,.22);z-index:400;display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:translateY(14px) scale(.96);transition:all .32s}
+#chat-win.open{opacity:1;pointer-events:auto;transform:none}
+.chat-top{background:var(--navy);border-radius:16px 16px 0 0;padding:13px 16px;display:flex;align-items:center;gap:11px}
+.chat-av{width:36px;height:36px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--white);flex-shrink:0}
+.chat-top-info h3{font-size:.9rem;color:var(--white);font-family:'Playfair Display',serif;margin-bottom:1px}
+.chat-status{font-size:.72rem;color:var(--goldl);display:flex;align-items:center;gap:4px}
+.chat-status::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--goldl);display:inline-block}
+.chat-top-acts{margin-left:auto;display:flex;gap:6px}
+.chat-top-btn{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.75);width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.82rem;transition:background .2s}
+.chat-top-btn:hover{background:rgba(255,255,255,.2)}
+#chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:9px;min-height:180px;max-height:290px}
+.msg{display:flex;flex-direction:column;max-width:82%}
+.msg.bot{align-self:flex-start}
+.msg.user{align-self:flex-end}
+.msg-b{padding:9px 13px;border-radius:14px;font-size:.86rem;line-height:1.55}
+.msg.bot .msg-b{background:var(--warm);color:var(--text);border-bottom-left-radius:3px}
+.msg.user .msg-b{background:var(--navy);color:var(--white);border-bottom-right-radius:3px}
+.msg-t{font-size:.68rem;color:var(--text2);margin-top:3px;padding:0 3px}
+.msg.user .msg-t{text-align:right}
+.typing{display:flex;gap:4px;padding:9px 13px;background:var(--warm);border-radius:14px;border-bottom-left-radius:3px;width:fit-content}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--text2);animation:bup .8s ease-in-out infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bup{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+.quick-row{display:flex;flex-wrap:wrap;gap:5px;padding:9px 14px;border-top:1px solid var(--border)}
+.qr{padding:5px 12px;border-radius:18px;font-size:.76rem;font-weight:600;background:var(--warm);color:var(--navy);border:1px solid var(--border);transition:all .2s;cursor:pointer}
+.qr:hover{background:var(--navy);color:var(--white)}
+.chat-inp-row{display:flex;gap:7px;padding:11px 13px;border-top:1px solid var(--border)}
+#chat-input{flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:22px;font-size:.88rem;background:var(--warm);transition:border-color .2s}
+#chat-input:focus{border-color:var(--gold)}
+#chat-send{background:var(--gold);color:var(--white);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+#chat-send:hover{background:var(--gold2)}
+#chat-send svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 
-    .quick-replies { padding: 0.6rem 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; background: #f9f5f0; border-top: 1px solid #ede8e0; }
-    .qr-btn {
-      background: #fff; border: 1.5px solid rgba(201,147,58,0.35); color: var(--gold);
-      padding: 5px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
-      transition: all .15s; white-space: nowrap;
-    }
-    .qr-btn:hover { background: var(--gold); color: #fff; border-color: var(--gold); }
-
-    .chat-input-area {
-      padding: 0.8rem 1rem; background: #fff; border-top: 1px solid #ede8e0; flex-shrink: 0;
-      display: flex; gap: 0.5rem; align-items: center;
-    }
-    #chat-input {
-      flex: 1; border: 1.5px solid #e0d8cc; border-radius: 999px; padding: 9px 16px;
-      font-size: 0.88rem; outline: none; background: #faf7f3; font-family: inherit; color: var(--text);
-      transition: border-color .2s;
-    }
-    #chat-input:focus { border-color: var(--gold); }
-    #chat-input::placeholder { color: #bbb; }
-    #chat-send {
-      width: 38px; height: 38px; border-radius: 50%; background: var(--gold); border: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .2s;
-    }
-    #chat-send:hover { background: var(--gold-light); }
-    #chat-send svg { width: 16px; height: 16px; fill: #fff; }
-  </style>
+/* RESPONSIVE */
+@media(max-width:900px){
+  .about-grid,.book-split,.contact-grid{grid-template-columns:1fr}
+  .about-img-wrap{height:260px}
+  .nav-links{display:none}
+}
+@media(max-width:640px){
+  .section{padding:56px 0}
+  .dish-grid{grid-template-columns:1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+  #chat-win{width:calc(100vw - 32px);right:16px}
+  .cart-drawer{width:100vw}
+  .hero-stats{gap:22px}
+  .hero-btns{flex-direction:column;width:fit-content}
+}
+@media(max-width:440px){.dish-grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 
 <!-- NAV -->
-<nav>
-  <a href="#" class="nav-logo">ð {{ restaurant.name }}</a>
-  <div class="nav-links">
-    <a href="#deals">Deals</a>
-    <a href="#menu">Menu</a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
-  </div>
-  <a href="tel:{{ restaurant.phone }}" class="nav-cta">Book a Table</a>
-</nav>
+<header id="hdr">
+  <nav class="container nav">
+    <div class="brand">
+      <div class="brand-icon">M</div>
+      <span>{{ restaurant.name }}</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#menu">Menu</a></li>
+      <li><a href="#deals">Deals</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#book">Book</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="nav-acts">
+      <button class="cart-btn" onclick="openCart()" aria-label="View cart">
+        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="cart-badge" id="cart-count">0</span>
+      </button>
+      <button class="btn-gold" onclick="openCart()">Order Now</button>
+    </div>
+  </nav>
+</header>
 
 <!-- HERO -->
-<section class="hero" id="home">
-  <div class="hero-content">
-    <div class="hero-badge">â¦ Northampton's Finest Indian Restaurant</div>
-    <h1>{{ restaurant.name.split()[0] }} <span>{{ restaurant.name.split()[1] }}</span></h1>
-    <p>{{ restaurant.tagline }}</p>
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="container hero-inner">
+    <div class="hero-pill">Northampton's Finest Indian Cuisine</div>
+    <h1>{{ restaurant.name }}</h1>
+    <p class="hero-tag">{{ restaurant.tagline }}</p>
     <div class="hero-btns">
-      <button class="btn-primary" onclick="openChat()">Chat with Us ð¬</button>
-      <a href="#menu" class="btn-outline">View Menu</a>
+      <button class="btn-hero primary" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">View Full Menu</button>
+      <button class="btn-hero outline" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">Book a Table</button>
     </div>
     <div class="hero-stats">
-      <div><div class="stat-num">15+</div><div class="stat-lbl">Years Serving</div></div>
-      <div><div class="stat-num">100%</div><div class="stat-lbl">Halal Meat</div></div>
-      <div><div class="stat-num">28</div><div class="stat-lbl">Dishes</div></div>
-      <div><div class="stat-num">4.8â</div><div class="stat-lbl">Google Rating</div></div>
+      <div class="stat"><strong>28+</strong><span>Dishes</span></div>
+      <div class="stat"><strong>100%</strong><span>Halal</span></div>
+      <div class="stat"><strong>4.8&#9733;</strong><span>Rating</span></div>
+      <div class="stat"><strong>15+</strong><span>Years</span></div>
     </div>
+  </div>
+</section>
+
+<!-- ORDER TYPE BAR -->
+<div class="ot-bar" id="ot-bar">
+  <div class="container ot-inner">
+    <span class="ot-label">Order type:</span>
+    <div class="ot-btns">
+      <button class="ot-btn active" onclick="setOT(this,'Dine-in')">Dine-in</button>
+      <button class="ot-btn" onclick="setOT(this,'Takeaway')">Takeaway</button>
+      <button class="ot-btn" onclick="setOT(this,'Collection')">Collection</button>
+    </div>
+    <span class="halal-tag">100% Halal Certified</span>
+  </div>
+</div>
+
+<!-- MENU -->
+<section id="menu" class="section">
+  <div class="container">
+    <h2 class="sec-title">Our Menu</h2>
+    <p class="sec-sub">Fresh, authentic Indian cuisine. Vegan options available. Ask about allergens.</p>
+    <div class="menu-tabs">
+      {% for category, items in restaurant.menu.items() %}
+      <button class="tab-btn{% if loop.first %} active{% endif %}"
+              onclick="switchTab(this,'{{ category|replace(' ','_')|replace('&','and') }}')">{{ category }}</button>
+      {% endfor %}
+    </div>
+    {% for category, items in restaurant.menu.items() %}
+    <div class="menu-cat{% if loop.first %} active{% endif %}" id="cat-{{ category|replace(' ','_')|replace('&','and') }}">
+      <div class="dish-grid">
+        {% for item in items %}
+        <div class="dish-card">
+          <div class="d-img-wrap">
+            <img class="d-img" src="" data-dish="{{ item.name }}" data-cat="{{ category }}" alt="{{ item.name }}" loading="lazy">
+            {% if item.vegan %}<span class="vegan-badge">Vegan</span>{% endif %}
+          </div>
+          <div class="d-info">
+            <div class="d-row1">
+              <h3 class="d-name">{{ item.name }}</h3>
+              <span class="d-price">&#163;{{ "%.2f"|format(item.price|float) }}</span>
+            </div>
+            <p class="d-desc">{{ item.description }}</p>
+            {% if item.allergens %}<p class="d-allergens">Contains: {{ item.allergens|join(', ') }}</p>{% endif %}
+            <button class="add-btn"
+                    data-name="{{ item.name|e }}"
+                    data-price="{{ item.price }}"
+                    data-cat="{{ category|e }}"
+                    data-desc="{{ item.description|e }}"
+                    data-vegan="{{ item.vegan|lower }}"
+                    onclick="openCust(this)">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add to Order
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
   </div>
 </section>
 
 <!-- DEALS -->
-<section id="deals">
-  <div class="section-label">ð¥ Current Offers</div>
-  <h2 class="section-title" style="color:#fff">Today's Best Deals</h2>
-  <p class="section-sub">Exceptional Indian food at even better value. Here's what's on right now.</p>
-  <div class="deals-grid">
-    {% set icons = ['ð', 'ð½ï¸', 'ð', 'ð¥'] %}
-    {% for deal in restaurant.deals %}
-    <div class="deal-card">
-      <div class="deal-icon">{{ icons[loop.index0 % 4] }}</div>
-      <h3>{{ deal.name }}</h3>
-      <p>{{ deal.description }}</p>
-      <span class="deal-valid">{{ deal.valid }}</span>
-    </div>
-    {% endfor %}
-  </div>
-</section>
-
-<!-- MENU -->
-<section id="menu">
-  <div class="section-label">ð Our Menu</div>
-  <h2 class="section-title">Explore Every Dish</h2>
-  <p class="section-sub">From our smoky tandoor to slow-cooked curries â all using authentic spices and 100% halal meat.</p>
-
-  <div class="menu-tabs">
-    {% for category in restaurant.menu %}
-    <button class="tab-btn {% if loop.first %}active{% endif %}" onclick="showCategory('{{ category }}', this)">{{ category }}</button>
-    {% endfor %}
-  </div>
-
-  {% for category, items in restaurant.menu.items() %}
-  <div class="menu-category {% if loop.first %}active{% endif %}" id="cat-{{ category | replace(' ', '-') | replace('&', 'and') }}">
-    {% for item in items %}
-    <div class="menu-item">
-      <div class="item-info">
-        <div class="item-name">{{ item.name }}</div>
-        <div class="item-desc">{{ item.description }}</div>
-        <div class="item-tags">
-          {% if item.vegan %}<span class="tag tag-vegan">ð± Vegan</span>{% endif %}
-          {% for a in item.allergens %}<span class="tag tag-allergen">{{ a }}</span>{% endfor %}
-        </div>
+<section id="deals" class="section deals-sec">
+  <div class="container">
+    <h2 class="sec-title">Special Offers</h2>
+    <p class="sec-sub">Exclusive deals you won't find anywhere else</p>
+    <div class="deals-grid">
+      {% for deal in restaurant.deals %}
+      <div class="deal-card">
+        <h3>{{ deal.name }}</h3>
+        <p>{{ deal.description }}</p>
+        <span class="deal-valid">{{ deal.valid }}</span>
       </div>
-      <div class="item-price">Â£{{ "%.2f" | format(item.price) }}</div>
+      {% endfor %}
     </div>
-    {% endfor %}
   </div>
-  {% endfor %}
 </section>
 
 <!-- ABOUT -->
-<section id="about">
-  <div class="about-grid">
-    <div class="about-visual">ð</div>
-    <div>
-      <div class="section-label">Our Story</div>
-      <h2 class="section-title">Authentic Flavours,<br/>Family Tradition</h2>
-      <p style="color:var(--muted);line-height:1.8;font-size:0.95rem;margin-bottom:1.5rem;">
-        Masala Kitchen has been bringing the bold, aromatic flavours of the Indian subcontinent to Northampton for over 15 years. Every dish is made from scratch using fresh spices, and all our meat is 100% halal certified.
-      </p>
-      <p style="color:var(--muted);line-height:1.8;font-size:0.95rem;">
-        Whether you're joining us for a quiet lunch, a family celebration, or a quick takeaway â you'll always leave satisfied.
-      </p>
-      <div class="about-features">
-        <div class="feature"><div class="feature-icon">ð¶ï¸</div><div><h4>Fresh Spices</h4><p>Ground and blended daily in-house</p></div></div>
-        <div class="feature"><div class="feature-icon">â</div><div><h4>Halal Certified</h4><p>All meat 100% halal</p></div></div>
-        <div class="feature"><div class="feature-icon">ð±</div><div><h4>Vegan Options</h4><p>Wide selection available</p></div></div>
-        <div class="feature"><div class="feature-icon">ð</div><div><h4>Easy Parking</h4><p>Grosvenor Centre, 3 min walk</p></div></div>
+<section id="about" class="section about-sec">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-img-wrap">
+        <img class="about-img" src="https://images.unsplash.com/photo-1517244683847-7456b63c5969?w=800&h=900&fit=crop&auto=format&q=80" alt="Masala Kitchen Indian food spread" loading="lazy">
       </div>
+      <div class="about-content">
+        <h2>A Taste of Authentic India</h2>
+        <p>Masala Kitchen has been serving the people of Northampton with the finest Indian cuisine for over 15 years. Every dish is crafted from authentic recipes using freshly ground spices imported directly from India.</p>
+        <p>Our chefs bring generations of culinary expertise from across the subcontinent — from the rich butter curries of Punjab to the fragrant biryanis of Hyderabad.</p>
+        <div class="about-badges">
+          <div class="a-badge" style="stroke:var(--green)">
+            <svg viewBox="0 0 24 24" stroke="var(--green)"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            100% Halal Certified
+          </div>
+          <div class="a-badge">
+            <svg viewBox="0 0 24 24" stroke="var(--green)"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 8v4l3 3"/></svg>
+            Vegan Options Available
+          </div>
+          <div class="a-badge">
+            <svg viewBox="0 0 24 24" stroke="var(--gold)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            4.8 Star Rated
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOK -->
+<section id="book" class="section book-sec">
+  <div class="container">
+    <div class="book-split">
+      <div>
+        <h2>Reserve Your Table</h2>
+        <p>Book online and we'll confirm within 2 hours. For large groups or same-day bookings, call us directly.</p>
+        <div class="bi-item"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013 5.18 2 2 0 014.94 3h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L9.09 10.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>{{ restaurant.phone }}</div>
+        <div class="bi-item"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Groups of 8+ — please call us directly</div>
+        <div class="bi-item"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Book up to 30 days in advance</div>
+        <div class="bi-item"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>{{ restaurant.email }}</div>
+      </div>
+      <form class="book-form" onsubmit="submitBooking(event)">
+        <div class="form-row">
+          <input class="f-input" type="text" id="bn" placeholder="Your name *" required>
+          <input class="f-input" type="tel" id="bp" placeholder="Phone number *" required>
+        </div>
+        <input class="f-input" type="email" id="be" placeholder="Email (for confirmation)">
+        <div class="form-row">
+          <input class="f-input" type="date" id="bd" required>
+          <select class="f-select" id="bt" required>
+            <option value="">Select time *</option>
+            <option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option>
+            <option>2:00 PM</option><option>2:30 PM</option><option>5:00 PM</option><option>5:30 PM</option>
+            <option>6:00 PM</option><option>6:30 PM</option><option>7:00 PM</option><option>7:30 PM</option>
+            <option>8:00 PM</option><option>8:30 PM</option><option>9:00 PM</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <select class="f-select" id="bg" required>
+            <option value="">Guests *</option>
+            <option value="1">1 guest</option><option value="2">2 guests</option><option value="3">3 guests</option>
+            <option value="4">4 guests</option><option value="5">5 guests</option><option value="6">6 guests</option><option value="7">7 guests</option>
+          </select>
+          <input class="f-input" type="text" id="bno" placeholder="Special requests">
+        </div>
+        <button type="submit" class="submit-btn">Request Booking</button>
+      </form>
     </div>
   </div>
 </section>
 
 <!-- CONTACT -->
-<section id="contact">
-  <div class="section-label">ð Find Us</div>
-  <h2 class="section-title">Visit or Get in Touch</h2>
-  <p class="section-sub">Walk-ins welcome. Bookings recommended for weekends and groups.</p>
-  <div class="contact-grid">
-    <div class="contact-info">
-      <p style="margin-bottom:1.5rem;"><strong>{{ restaurant.address }}</strong></p>
-      <p>ð <strong>{{ restaurant.phone }}</strong></p>
-      <p>âï¸ <strong>{{ restaurant.email }}</strong></p>
-      <p style="margin-top:1rem;">ð½ï¸ {{ restaurant.services | join(', ') }}</p>
-      <p style="margin-top:1.5rem;color:#9a8070;font-size:0.85rem;">Large groups (8+): please call us directly.<br/>We'll confirm bookings within 2 hours.</p>
-      <button class="btn-primary" style="margin-top:2rem;" onclick="openChat()">Ask the AI Chatbot ð¬</button>
-    </div>
-    <div>
-      <table class="hours-table">
+<section id="contact" class="section contact-sec">
+  <div class="container">
+    <h2 class="sec-title">Find Us</h2>
+    <div class="contact-grid">
+      <div class="c-col">
+        <h3>Opening Hours</h3>
         {% for day, time in restaurant.hours.items() %}
-        <tr><td>{{ day }}</td><td>{{ time }}</td></tr>
+        <div class="hrs-row"><span>{{ day }}</span><span>{{ time }}</span></div>
         {% endfor %}
-      </table>
+      </div>
+      <div class="c-col">
+        <h3>Get In Touch</h3>
+        <div class="c-item"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ restaurant.address }}</div>
+        <div class="c-item"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013 5.18 2 2 0 014.94 3h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L9.09 10.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>{{ restaurant.phone }}</div>
+        <div class="c-item"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>{{ restaurant.email }}</div>
+        <div class="c-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Mon-Thu 12-10pm &nbsp;|&nbsp; Fri-Sat 12-11pm &nbsp;|&nbsp; Sun 1-10pm</div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
-  <p>Â© 2025 {{ restaurant.name }} Â· {{ restaurant.address }} Â· {{ restaurant.phone }}</p>
-  <p style="margin-top:0.5rem;">AI chatbot demo built by <a href="https://github.com/Alanbiju433">Alan Biju</a></p>
+  <div class="container foot-inner">
+    <span class="foot-brand">{{ restaurant.name }}</span>
+    <span>{{ restaurant.address }}</span>
+    <span>AI chatbot demo by <a href="https://github.com/Alanbiju433" style="color:rgba(255,255,255,.5)">Alan Biju</a></span>
+  </div>
 </footer>
 
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="c-overlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="c-drawer">
+  <div class="cart-hdr">
+    <h3>Your Order</h3>
+    <div class="cart-hdr-r">
+      <span class="cart-ot" id="c-ot">Dine-in</span>
+      <button class="cart-x" onclick="closeCart()">&#215;</button>
+    </div>
+  </div>
+  <div class="cart-body" id="c-body">
+    <div class="cart-empty" id="c-empty">
+      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <p>Your cart is empty.<br>Add items from our menu!</p>
+    </div>
+    <div id="c-list"></div>
+  </div>
+  <div class="cart-foot" id="c-foot" style="display:none">
+    <div class="cart-tot-row">
+      <span class="cart-tot-lbl">Order Total</span>
+      <span class="cart-tot-amt" id="c-total">&#163;0.00</span>
+    </div>
+    <button class="co-btn" onclick="openCheckout()">Proceed to Checkout</button>
+  </div>
+</div>
+
+<!-- CUSTOMISE MODAL -->
+<div class="m-overlay" id="cust-ov">
+  <div class="modal">
+    <div class="m-hdr">
+      <h3 id="cust-title">Customise</h3>
+      <button class="m-x" onclick="closeCust()">&#215;</button>
+    </div>
+    <div class="m-body">
+      <p class="c-desc" id="cust-desc"></p>
+      <div class="opt-sec" id="spice-sec">
+        <label>Spice Level</label>
+        <div class="pill-grp" id="spice-grp">
+          <button class="pill active" data-v="Mild">Mild</button>
+          <button class="pill" data-v="Medium">Medium</button>
+          <button class="pill" data-v="Hot">Hot</button>
+          <button class="pill" data-v="Extra Hot">Extra Hot</button>
+        </div>
+      </div>
+      <div class="opt-sec" id="portion-sec">
+        <label>Portion Size</label>
+        <div class="pill-grp" id="portion-grp">
+          <button class="pill active" data-v="Regular" data-ex="0">Regular</button>
+          <button class="pill" data-v="Large" data-ex="2">Large (+&#163;2.00)</button>
+        </div>
+      </div>
+      <div class="opt-sec">
+        <label>Quantity</label>
+        <div class="qty-wrap">
+          <button class="qty-btn" onclick="chQty(-1)">&#8722;</button>
+          <span class="qty-num" id="cust-qty">1</span>
+          <button class="qty-btn" onclick="chQty(1)">+</button>
+        </div>
+      </div>
+      <div class="opt-sec">
+        <label>Special Instructions</label>
+        <textarea class="notes-ta" id="cust-notes" placeholder="Allergies, no onions, extra sauce..."></textarea>
+      </div>
+    </div>
+    <div class="m-foot">
+      <span class="m-price" id="cust-price">&#163;0.00</span>
+      <button class="m-add-btn" onclick="confirmAdd()">Add to Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="m-overlay" id="co-ov">
+  <div class="modal co-modal">
+    <div class="m-hdr">
+      <h3>Checkout</h3>
+      <button class="m-x" onclick="closeCheckout()">&#215;</button>
+    </div>
+    <div class="m-body">
+      <div class="co-sum" id="co-sum"></div>
+      <div class="co-sec">
+        <h4>Your Details</h4>
+        <input class="co-in" type="text" id="co-name" placeholder="Full Name *">
+        <input class="co-in" type="tel" id="co-phone" placeholder="Phone Number *">
+        <input class="co-in" type="email" id="co-email" placeholder="Email (optional)">
+        <div id="co-time-wrap">
+          <select class="co-sel" id="co-time">
+            <option value="ASAP">Collection: ASAP (~25 min)</option>
+            <option value="30min">Ready in 30 minutes</option>
+            <option value="45min">Ready in 45 minutes</option>
+            <option value="1hr">Ready in 1 hour</option>
+          </select>
+        </div>
+        <textarea class="co-ta" id="co-notes" placeholder="Any special instructions..."></textarea>
+      </div>
+    </div>
+    <div class="m-foot">
+      <span class="m-price" id="co-total-disp">&#163;0.00</span>
+      <button class="place-btn" onclick="placeOrder()">Place Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER SUCCESS -->
+<div class="m-overlay" id="ord-suc-ov">
+  <div class="modal suc-modal">
+    <div class="suc-icon">&#10003;</div>
+    <h3>Order Received!</h3>
+    <p id="ord-suc-msg">We'll call you shortly to confirm.</p>
+    <button class="suc-close" onclick="document.getElementById('ord-suc-ov').classList.remove('open')">Done</button>
+  </div>
+</div>
+
+<!-- BOOK SUCCESS -->
+<div class="m-overlay" id="bk-suc-ov">
+  <div class="modal suc-modal">
+    <div class="suc-icon">&#10003;</div>
+    <h3>Booking Requested!</h3>
+    <p>We'll call you within 2 hours to confirm your table. See you soon!</p>
+    <button class="suc-close" onclick="document.getElementById('bk-suc-ov').classList.remove('open')">Done</button>
+  </div>
+</div>
+
 <!-- CHAT BUBBLE -->
-<button id="chat-bubble" onclick="toggleChat()" title="Chat with us">
-  <span id="bubble-icon">ð¬</span>
-  <span class="chat-badge" id="notif-badge" style="display:none">1</span>
+<button id="chat-bubble" onclick="toggleChat()" aria-label="Chat with us">
+  <svg id="ci-open" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <svg id="ci-close" viewBox="0 0 24 24" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  <span class="chat-notif" id="chat-notif">1</span>
 </button>
 
 <!-- CHAT WINDOW -->
-<div id="chat-window">
-  <div class="chat-header">
-    <div class="chat-avatar">ð</div>
-    <div class="chat-header-info">
-      <h3>Masala Kitchen AI</h3>
-      <div class="chat-status">Online now</div>
+<div id="chat-win">
+  <div class="chat-top">
+    <div class="chat-av">M</div>
+    <div class="chat-top-info">
+      <h3>{{ restaurant.name }} AI</h3>
+      <span class="chat-status">Online now</span>
     </div>
-    <div class="chat-header-actions">
-      <button onclick="resetChat()" title="New conversation">âº Reset</button>
-      <button onclick="toggleChat()" title="Close">â</button>
+    <div class="chat-top-acts">
+      <button class="chat-top-btn" onclick="resetChat()" title="New chat">&#8635;</button>
+      <button class="chat-top-btn" onclick="toggleChat()">&#215;</button>
     </div>
   </div>
-
-  <div id="chat-messages"></div>
-
-  <div class="quick-replies" id="quick-replies">
-    <button class="qr-btn" onclick="sendQuick('What are your opening hours?')">â° Hours</button>
-    <button class="qr-btn" onclick="sendQuick('Show me the menu')">ð Menu</button>
-    <button class="qr-btn" onclick="sendQuick('I want to make a booking')">ð Book</button>
-    <button class="qr-btn" onclick="sendQuick('Do you have vegan options?')">ð± Vegan</button>
-    <button class="qr-btn" onclick="sendQuick('What deals do you have?')">ð Deals</button>
+  <div id="chat-msgs"></div>
+  <div class="quick-row" id="quick-row">
+    <button class="qr" onclick="sendQ('What are your opening hours?')">Hours</button>
+    <button class="qr" onclick="sendQ('Show me the menu')">Menu</button>
+    <button class="qr" onclick="sendQ('I want to book a table')">Book</button>
+    <button class="qr" onclick="sendQ('Do you have vegan options?')">Vegan</button>
+    <button class="qr" onclick="sendQ('What deals do you have?')">Deals</button>
   </div>
-
-  <div class="chat-input-area">
-    <input id="chat-input" type="text" placeholder="Ask anythingâ¦" autocomplete="off" />
-    <button id="chat-send" onclick="sendMessage()">
-      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+  <div class="chat-inp-row">
+    <input type="text" id="chat-input" placeholder="Ask anything..." autocomplete="off">
+    <button id="chat-send" onclick="sendMsg()">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
 </div>
 
+{% raw %}
 <script>
-  // âââ Menu tabs âââ
-  function showCategory(name, btn) {
-    document.querySelectorAll('.menu-category').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    const id = 'cat-' + name.replace(/ /g, '-').replace(/&/g, 'and');
-    document.getElementById(id)?.classList.add('active');
-    btn.classList.add('active');
-  }
+/* IMAGE MAP */
+const IMGS = {
+  'Vegetable Samosa (2)':'photo-1601050690597-df0568f70950',
+  'Onion Bhaji (3)':'photo-1589302168068-964664d93dc0',
+  'Seekh Kebab':'photo-1728910156510-77488f19b152',
+  'Chicken Tikka':'photo-1517244683847-7456b63c5969',
+  'Paneer Tikka':'photo-1631452180539-96aca7d48617',
+  'Soup of the Day':'photo-1618449840665-9ed506d73a34',
+  'Butter Chicken':'photo-1585937421612-70a008356fbe',
+  'Lamb Rogan Josh':'photo-1596797038530-2c107229654b',
+  'Paneer Tikka Masala':'photo-1618449840665-9ed506d73a34',
+  'Chicken Biryani':'photo-1625398407796-82650a8c135f',
+  'Dal Makhani':'photo-1581600140682-d4e68c8cde32',
+  'Chana Masala':'photo-1631452180539-96aca7d48617',
+  'King Prawn Masala':'photo-1606471191009-63994c53433b',
+  'Saag Aloo':'photo-1694849789325-914b71ab4075',
+  'Mixed Grill Platter':'photo-1542367592-8849eb950fd8',
+  'Plain Naan':'photo-1567337710282-00832b415979',
+  'Garlic Naan':'photo-1565557623262-b51c2513a641',
+  'Peshwari Naan':'photo-1565557623262-b51c2513a641',
+  'Steamed Basmati Rice':'photo-1625398407796-82650a8c135f',
+  'Pilau Rice':'photo-1542367592-8849eb950fd8',
+  'Chips':'photo-1596797038530-2c107229654b',
+  'Gulab Jamun':'photo-1585937421612-70a008356fbe',
+  'Mango Kulfi':'photo-1606471191009-63994c53433b',
+  'Rasgulla':'photo-1517244683847-7456b63c5969',
+  'Mango Lassi':'photo-1589302168068-964664d93dc0',
+  'Masala Chai':'photo-1694849789325-914b71ab4075',
+  'Soft Drinks':'photo-1517244683847-7456b63c5969',
+  'Cobra Beer (330ml)':'photo-1581600140682-d4e68c8cde32',
+};
+const CAT_IMGS = {
+  'Starters':'photo-1601050690597-df0568f70950',
+  'Mains':'photo-1585937421612-70a008356fbe',
+  'Breads & Rice':'photo-1565557623262-b51c2513a641',
+  'Desserts':'photo-1606471191009-63994c53433b',
+  'Drinks':'photo-1589302168068-964664d93dc0',
+};
+function imgUrl(name, cat) {
+  const id = IMGS[name] || CAT_IMGS[cat] || 'photo-1585937421612-70a008356fbe';
+  return 'https://images.unsplash.com/' + id + '?w=500&h=360&fit=crop&auto=format&q=80';
+}
+document.querySelectorAll('.d-img').forEach(img => {
+  img.src = imgUrl(img.dataset.dish, img.dataset.cat);
+  img.onerror = function() { this.parentElement.style.background = '#E8DDD0'; this.remove(); };
+});
 
-  // âââ Chat state âââ
-  let chatOpen = false;
-  let firstOpen = true;
+/* ORDER TYPE */
+let orderType = 'Dine-in';
+function setOT(btn, type) {
+  document.querySelectorAll('.ot-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  orderType = type;
+  document.getElementById('c-ot').textContent = type;
+}
 
-  function toggleChat() {
-    chatOpen = !chatOpen;
-    document.getElementById('chat-window').classList.toggle('open', chatOpen);
-    const bubble = document.getElementById('chat-bubble');
-    bubble.classList.toggle('open', chatOpen);
-    document.getElementById('bubble-icon').textContent = chatOpen ? 'â' : 'ð¬';
-    document.getElementById('notif-badge').style.display = 'none';
-    if (chatOpen && firstOpen) { firstOpen = false; sendWelcome(); }
-    if (chatOpen) document.getElementById('chat-input').focus();
-  }
+/* MENU TABS */
+function switchTab(btn, catId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.menu-cat').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById('cat-' + catId);
+  if (el) el.classList.add('active');
+}
 
-  function openChat() { if (!chatOpen) toggleChat(); }
-
-  function getTime() {
-    return new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  }
-
-  function appendMsg(text, role) {
-    const msgs = document.getElementById('chat-messages');
-    const div = document.createElement('div');
-    div.className = 'msg ' + role;
-    div.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g, '<br>')}</div><div class="msg-time">${getTime()}</div>`;
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  function showTyping() {
-    const msgs = document.getElementById('chat-messages');
-    const div = document.createElement('div');
-    div.className = 'msg bot typing-indicator';
-    div.id = 'typing';
-    div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  function hideTyping() {
-    document.getElementById('typing')?.remove();
-  }
-
-  function sendWelcome() {
-    setTimeout(() => {
-      appendMsg("ð Hey there! I'm the Masala Kitchen AI â I know our full menu, deals, opening hours, allergens, and I can help you make a booking.\n\nWhat can I help you with today?", 'bot');
-    }, 400);
-  }
-
-  async function sendMessage(text) {
-    const input = document.getElementById('chat-input');
-    const message = text || input.value.trim();
-    if (!message) return;
-    if (!text) input.value = '';
-
-    appendMsg(message, 'user');
-    showTyping();
-
-    try {
-      const res = await fetch('/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message })
-      });
-      const data = await res.json();
-      hideTyping();
-      if (data.reply) appendMsg(data.reply, 'bot');
-      else appendMsg('Sorry, something went wrong. Please try again.', 'bot');
-    } catch (e) {
-      hideTyping();
-      appendMsg('â ï¸ Could not reach the server. Please check your connection.', 'bot');
-    }
-  }
-
-  function sendQuick(text) {
-    openChat();
-    sendMessage(text);
-  }
-
-  async function resetChat() {
-    await fetch('/reset', { method: 'POST' });
-    document.getElementById('chat-messages').innerHTML = '';
-    sendWelcome();
-  }
-
-  // Enter key to send
-  document.getElementById('chat-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') sendMessage();
+/* CART */
+let cart = [];
+function openCart() {
+  document.getElementById('c-overlay').classList.add('open');
+  document.getElementById('c-drawer').classList.add('open');
+  renderCart();
+}
+function closeCart() {
+  document.getElementById('c-overlay').classList.remove('open');
+  document.getElementById('c-drawer').classList.remove('open');
+}
+function renderCart() {
+  const list = document.getElementById('c-list');
+  const empty = document.getElementById('c-empty');
+  const foot = document.getElementById('c-foot');
+  const badge = document.getElementById('cart-count');
+  list.innerHTML = '';
+  const tot = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const cnt = cart.reduce((s, i) => s + i.qty, 0);
+  badge.textContent = cnt;
+  badge.style.display = cnt > 0 ? 'flex' : 'none';
+  if (!cart.length) { empty.style.display = 'block'; foot.style.display = 'none'; return; }
+  empty.style.display = 'none';
+  foot.style.display = 'block';
+  cart.forEach((item, idx) => {
+    const d = document.createElement('div');
+    d.className = 'ci';
+    const meta = [item.spice, item.portion !== 'Regular' ? item.portion : '', item.notes].filter(Boolean).join(' · ');
+    d.innerHTML =
+      '<div class="ci-info">' +
+      '<div class="ci-name">' + item.name + '</div>' +
+      (meta ? '<div class="ci-meta">' + meta + '</div>' : '') +
+      '<div class="ci-qty">' +
+      '<button onclick="chCart(' + idx + ',-1)">&#8722;</button>' +
+      '<span>' + item.qty + '</span>' +
+      '<button onclick="chCart(' + idx + ',1)">+</button>' +
+      '</div></div>' +
+      '<span class="ci-price">&#163;' + (item.price * item.qty).toFixed(2) + '</span>';
+    list.appendChild(d);
   });
+  document.getElementById('c-total').innerHTML = '&#163;' + tot.toFixed(2);
+}
+function chCart(idx, delta) {
+  cart[idx].qty += delta;
+  if (cart[idx].qty < 1) cart.splice(idx, 1);
+  renderCart();
+}
 
-  // Show badge after 3 seconds to draw attention
-  setTimeout(() => {
-    if (!chatOpen) document.getElementById('notif-badge').style.display = 'flex';
-  }, 3000);
+/* CUSTOMISE */
+let cItem = null, cQty = 1, cSpice = 'Mild', cPortion = 'Regular', cEx = 0;
+const NO_SPICE = ['Drinks', 'Desserts', 'Breads & Rice'];
+
+function openCust(btn) {
+  cItem = { name: btn.dataset.name, price: parseFloat(btn.dataset.price), cat: btn.dataset.cat, desc: btn.dataset.desc };
+  cQty = 1; cSpice = 'Mild'; cPortion = 'Regular'; cEx = 0;
+  document.getElementById('cust-title').textContent = cItem.name;
+  document.getElementById('cust-desc').textContent = cItem.desc;
+  document.getElementById('cust-qty').textContent = '1';
+  document.getElementById('cust-notes').value = '';
+  document.getElementById('spice-sec').style.display = NO_SPICE.includes(cItem.cat) ? 'none' : 'block';
+  document.getElementById('portion-sec').style.display = cItem.cat === 'Drinks' ? 'none' : 'block';
+  document.querySelectorAll('#spice-grp .pill').forEach(p => p.classList.toggle('active', p.dataset.v === 'Mild'));
+  document.querySelectorAll('#portion-grp .pill').forEach(p => p.classList.toggle('active', p.dataset.v === 'Regular'));
+  updCustP();
+  document.getElementById('cust-ov').classList.add('open');
+}
+function closeCust() { document.getElementById('cust-ov').classList.remove('open'); }
+function updCustP() {
+  if (!cItem) return;
+  document.getElementById('cust-price').innerHTML = '&#163;' + ((cItem.price + cEx) * cQty).toFixed(2);
+}
+function chQty(d) { cQty = Math.max(1, cQty + d); document.getElementById('cust-qty').textContent = cQty; updCustP(); }
+
+document.getElementById('spice-grp').addEventListener('click', e => {
+  const b = e.target.closest('.pill'); if (!b) return;
+  document.querySelectorAll('#spice-grp .pill').forEach(p => p.classList.remove('active'));
+  b.classList.add('active'); cSpice = b.dataset.v;
+});
+document.getElementById('portion-grp').addEventListener('click', e => {
+  const b = e.target.closest('.pill'); if (!b) return;
+  document.querySelectorAll('#portion-grp .pill').forEach(p => p.classList.remove('active'));
+  b.classList.add('active'); cPortion = b.dataset.v; cEx = parseFloat(b.dataset.ex || 0); updCustP();
+});
+
+function confirmAdd() {
+  if (!cItem) return;
+  cart.push({ name: cItem.name, price: cItem.price + cEx, qty: cQty,
+    spice: NO_SPICE.includes(cItem.cat) ? '' : cSpice,
+    portion: cPortion, notes: document.getElementById('cust-notes').value.trim(), cat: cItem.cat });
+  closeCust(); openCart();
+}
+
+/* CHECKOUT */
+function openCheckout() {
+  if (!cart.length) return;
+  closeCart();
+  let html = '', tot = 0;
+  cart.forEach(i => {
+    const lt = i.price * i.qty; tot += lt;
+    html += '<div class="co-irow"><span>' + i.qty + 'x ' + i.name + (i.portion === 'Large' ? ' (L)' : '') + '</span><span>&#163;' + lt.toFixed(2) + '</span></div>';
+  });
+  html += '<hr class="co-hr"><div class="co-tot"><span>Total</span><span>&#163;' + tot.toFixed(2) + '</span></div>';
+  document.getElementById('co-sum').innerHTML = html;
+  document.getElementById('co-total-disp').innerHTML = '&#163;' + tot.toFixed(2);
+  document.getElementById('co-time-wrap').style.display = orderType === 'Dine-in' ? 'none' : 'block';
+  document.getElementById('co-ov').classList.add('open');
+}
+function closeCheckout() { document.getElementById('co-ov').classList.remove('open'); }
+
+async function placeOrder() {
+  const name = document.getElementById('co-name').value.trim();
+  const phone = document.getElementById('co-phone').value.trim();
+  if (!name || !phone) { alert('Please enter your name and phone number.'); return; }
+  const tot = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const payload = {
+    order_type: orderType, name, phone,
+    email: document.getElementById('co-email').value.trim(),
+    time: document.getElementById('co-time').value,
+    notes: document.getElementById('co-notes').value.trim(),
+    items: cart, total: tot.toFixed(2)
+  };
+  try {
+    await fetch('/order', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+    closeCheckout();
+    document.getElementById('ord-suc-msg').textContent =
+      'Thanks ' + name + '! Your ' + orderType.toLowerCase() + ' order is confirmed. We\'ll call ' + phone + ' shortly.';
+    document.getElementById('ord-suc-ov').classList.add('open');
+    cart = []; renderCart();
+  } catch(e) { alert('Error placing order. Please call us on 01604 123456.'); }
+}
+
+/* BOOKING */
+document.getElementById('bd').min = new Date().toISOString().split('T')[0];
+async function submitBooking(e) {
+  e.preventDefault();
+  const payload = { name: document.getElementById('bn').value.trim(),
+    phone: document.getElementById('bp').value.trim(), email: document.getElementById('be').value.trim(),
+    date: document.getElementById('bd').value, time: document.getElementById('bt').value,
+    guests: document.getElementById('bg').value, notes: document.getElementById('bno').value.trim() };
+  try {
+    await fetch('/book', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+    document.getElementById('bk-suc-ov').classList.add('open');
+    document.querySelector('.book-form').reset();
+  } catch(e) { alert('Error. Please call 01604 123456.'); }
+}
+
+/* CHAT */
+let chatOpen = false, firstOpen = true;
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-win').classList.toggle('open', chatOpen);
+  document.getElementById('ci-open').style.display = chatOpen ? 'none' : 'block';
+  document.getElementById('ci-close').style.display = chatOpen ? 'block' : 'none';
+  document.getElementById('chat-notif').style.display = 'none';
+  if (chatOpen && firstOpen) { firstOpen = false; welcome(); }
+  if (chatOpen) document.getElementById('chat-input').focus();
+}
+function getT() { return new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+function appendMsg(text, role) {
+  const m = document.getElementById('chat-msgs');
+  const d = document.createElement('div'); d.className = 'msg ' + role;
+  d.innerHTML = '<div class="msg-b">' + text.replace(/\n/g,'<br>') + '</div><div class="msg-t">' + getT() + '</div>';
+  m.appendChild(d); m.scrollTop = m.scrollHeight;
+}
+function showTyping() {
+  const m = document.getElementById('chat-msgs');
+  const d = document.createElement('div'); d.className = 'msg bot'; d.id = 'typ-ind';
+  d.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  m.appendChild(d); m.scrollTop = m.scrollHeight;
+}
+function hideTyping() { document.getElementById('typ-ind')?.remove(); }
+function welcome() {
+  setTimeout(() => appendMsg("Hi! I'm the Masala Kitchen AI — I know our full menu, deals, hours, and can help with bookings.\n\nWhat can I help you with?", 'bot'), 350);
+}
+async function sendMsg(text) {
+  const inp = document.getElementById('chat-input');
+  const msg = text || inp.value.trim(); if (!msg) return;
+  if (!text) inp.value = '';
+  appendMsg(msg, 'user'); showTyping();
+  try {
+    const r = await fetch('/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg}) });
+    const d = await r.json(); hideTyping();
+    appendMsg(d.reply || 'Sorry, something went wrong.', 'bot');
+  } catch(e) { hideTyping(); appendMsg('Could not reach the server. Please check your connection.', 'bot'); }
+}
+function sendQ(text) { if (!chatOpen) toggleChat(); setTimeout(() => sendMsg(text), firstOpen ? 550 : 0); }
+async function resetChat() {
+  await fetch('/reset', {method:'POST'});
+  document.getElementById('chat-msgs').innerHTML = ''; welcome();
+}
+document.getElementById('chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+setTimeout(() => { if (!chatOpen) document.getElementById('chat-notif').style.display = 'flex'; }, 3000);
+
+/* SCROLL FX */
+window.addEventListener('scroll', () => {
+  document.getElementById('hdr').style.boxShadow = window.scrollY > 10 ? '0 2px 32px rgba(0,0,0,.45)' : '';
+});
 </script>
+{% endraw %}
 </body>
 </html>
