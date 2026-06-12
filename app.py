@@ -25,7 +25,15 @@ def build_system_prompt():
 
     hours_text = "\n".join([f"  {day}: {time}" for day, time in r["hours"].items()])
     deals_text = "\n".join([f"  - {d['name']}: {d['description']} ({d['valid']})" for d in r["deals"]])
-    faqs_text = "\n".join([f"  Q: {f['q']}\n  A: {f['a']}" for f in r["faqs"]])
+
+    booking_info = r.get("booking_info", {})
+    booking_text = (
+        f"Advance booking: up to {booking_info.get('max_advance', '30 days')}\n"
+        f"Large groups (8+): {booking_info.get('large_groups', 'please call us directly')}"
+    )
+
+    faqs = r.get("faqs", [])
+    faqs_text = "\n".join([f"  Q: {f['q']}\n  A: {f['a']}" for f in faqs]) if faqs else "  (none)"
 
     return f"""You are the friendly AI assistant for {r['name']} — "{r['tagline']}".
 
@@ -48,10 +56,7 @@ Services: {', '.join(r['services'])}
 {menu_text}
 
 == BOOKING INFO ==
-{r['booking_info']['how']}
-Advance booking: up to {r['booking_info']['max_advance']}
-Large groups (8+): {r['booking_info']['large_groups']}
-Confirmation: {r['booking_info']['note']}
+{booking_text}
 
 When a customer wants to make a booking, collect: name, date, time, party size, and a contact phone number. Once you have all 5, confirm the booking details back to them and say the team will call to confirm within 2 hours.
 
@@ -107,6 +112,38 @@ def chat():
 def reset():
     session.pop("history", None)
     return jsonify({"status": "ok"})
+
+
+@app.route("/order", methods=["POST"])
+def order():
+    data = request.get_json()
+    name = data.get("name", "Unknown")
+    order_type = data.get("order_type", "Dine-in")
+    items = data.get("items", [])
+    total = data.get("total", "0.00")
+    phone = data.get("phone", "")
+    print(f"=== NEW ORDER ===")
+    print(f"Type: {order_type} | Name: {name} | Phone: {phone} | Total: £{total}")
+    for i in items:
+        spice = f" [{i.get('spice','')}]" if i.get('spice') else ""
+        portion = f" [{i.get('portion','')}]" if i.get('portion') not in ('', 'Regular') else ""
+        print(f"  {i.get('qty','1')}x {i.get('name','?')}{spice}{portion} — £{i.get('price','?')}")
+    if data.get("notes"):
+        print(f"Notes: {data['notes']}")
+    print(f"=================")
+    return jsonify({"success": True, "message": "Order received"})
+
+
+@app.route("/book", methods=["POST"])
+def book():
+    data = request.get_json()
+    print(f"=== NEW BOOKING ===")
+    print(f"Name: {data.get('name')} | Phone: {data.get('phone')} | Email: {data.get('email','')}")
+    print(f"Date: {data.get('date')} | Time: {data.get('time')} | Guests: {data.get('guests')}")
+    if data.get("notes"):
+        print(f"Notes: {data['notes']}")
+    print(f"==================")
+    return jsonify({"success": True, "message": "Booking received"})
 
 
 if __name__ == "__main__":
