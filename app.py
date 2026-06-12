@@ -18,14 +18,11 @@ except ImportError:
     STRIPE_ON  = False
     STRIPE_PUB = ''
 
-# ── App ──────────────────────────────────────────────────────────────
+# ── App ────────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'masala-kitchen-dev-key-change-in-prod')
 
-# Get the app's directory
-APP_DIR = os.path.dirname(os.path.abspath(__file__))
-DB = os.path.join(APP_DIR, 'masala.db')
-
+DB = os.path.join(os.path.dirname(__file__), 'masala.db')
 _openai_client = None
 
 def get_openai_client():
@@ -34,10 +31,10 @@ def get_openai_client():
         _openai_client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
     return _openai_client
 
-# Load restaurant data with proper path
-with open(os.path.join(APP_DIR, 'data/restaurant.json')) as f:
+with open('data/restaurant.json') as f:
     RESTAURANT = json.load(f)
-# ── Database helpers ───────────────────────────────────────────────────────────
+
+# ── Database helpers ──────────────────────────────────────────────────────────
 def get_db():
     db = getattr(g, '_db', None)
     if db is None:
@@ -111,7 +108,7 @@ def init_db():
 
 init_db()
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 def short_id():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
@@ -139,29 +136,29 @@ def menu_from_db():
         })
     return cats
 
-# ── AI system prompt ─────────────────────────────────────────────────
+# ── AI system prompt ───────────────────────────────────────────────────────────
 def build_system_prompt():
     r = RESTAURANT
     menu_text = ''
     for cat, items in r['menu'].items():
-        menu_text += f'\{cat}:\n'
+        menu_text += f'\n{cat}:\n'
         for it in items:
             v = ' [VEGAN]' if it.get('vegan') else ''
             a = f" (allergens: {', '.join(it['allergens'])})" if it.get('allergens') else ''
-            menu_text += f"  {it['name']} — £{it['price']:.2f}: {it['description']}{v}{a}\n"
+            menu_text += f"  - {it['name']} - {it['price']:.2f}: {it['description']}{v}{a}\n"
     hours = '\n'.join(f'  {d}: {t}' for d, t in r['hours'].items())
     deals = '\n'.join(f"  - {d['name']}: {d['description']} ({d['valid']})" for d in r['deals'])
     bi    = r.get('booking_info', {})
     faqs  = r.get('faqs', [])
     faq_text = '\n'.join(f"  Q: {f['q']}\n  A: {f['a']}" for f in faqs) if faqs else '  (none)'
-    return f'''You are the friendly AI assistant for {r['name']} — "{r['tagline']}".
+    return f'''You are the friendly AI assistant for {r['name']} - "{r['tagline']}".
 Help customers with menu questions, allergen info, bookings, deals, hours. Be concise.
 
 == RESTAURANT ==
 {r['name']} | {r['address']} | {r['phone']} | {r['email']}
-Services: {r.get('services', 'N/A')}
+Services: {', '.join(r['services'])}
 
-)== HOURS ==
+== HOURS ==
 {hours}
 
 == DEALS ==
@@ -184,7 +181,7 @@ Always mention allergens when asked. Direct complaints to {r['phone']} or {r['em
 
 SYSTEM_PROMPT = build_system_prompt()
 
-# ── Public routes ───────────────────────────────────────────────────────
+# ── Public routes ──────────────────────────────────────────────────────────────
 @app.route('/')
 def index():
     restaurant = dict(RESTAURANT)
@@ -201,7 +198,7 @@ def api_get_order(oid):
     db  = get_db()
     row = db.execute('SELECT * FROM orders WHERE id=?', (oid.upper(),)).fetchone()
     if not row:
-        return jsonify({"error": "Order not found"}), 404
+        return jsonify({'error': 'Order not found'}), 404
     return jsonify({
         'id': row['id'], 'name': row['name'], 'order_type': row['order_type'],
         'status': row['status'], 'total': row['total'],
@@ -230,7 +227,7 @@ def place_order():
         data.get('notes',''), data.get('payment_method','cash'),
     ))
     db.commit()
-    print(f'=== NEW ORDER {oid} | {data.get("order_type")} | {name} | £{data.get("total")} ===')
+    print(f'=== NEW ORDER {oid} | {data.get("order_type")} | {name} | {data.get("total")} ===')
     return jsonify({'success': True, 'order_id': oid})
 
 @app.route('/book', methods=['POST'])
@@ -252,7 +249,7 @@ def chat():
     try:
         resp  = get_openai_client().chat.completions.create(
             model='gpt-4o-mini',
-            messages=[{"role":"system","content":SYSTEM_PROMPT}] + history,
+            messages=[{'role':'system','content':SYSTEM_PROMPT}] + history,
             max_tokens=400, temperature=0.7,
         )
         reply = resp.choices[0].message.content
@@ -267,7 +264,7 @@ def reset():
     session.pop('history', None)
     return jsonify({'status': 'ok'})
 
-# ── Stripe ────────────────────────────────────────────────────────────────────────
+# ── Stripe ─────────────────────────────────────────────────────────────────────
 @app.route('/stripe/create-intent', methods=['POST'])
 def create_intent():
     if not STRIPE_ON:
@@ -300,7 +297,7 @@ def stripe_webhook():
         db.commit()
     return '', 200
 
-# ── Admin auth ──────────────────────────────────────────────────────────────────────
+# ── Admin auth ─────────────────────────────────────────────────────────────────
 @app.route('/admin/login', methods=['GET','POST'])
 def admin_login():
     if session.get('admin_id'):
@@ -324,7 +321,7 @@ def admin_logout():
     session.pop('admin_username', None)
     return redirect(url_for('admin_login'))
 
-# ── Admin dashboard ────────────────────────────────────────────────────────
+# ── Admin dashboard ────────────────────────────────────────────────────────────
 @app.route('/admin')
 @app.route('/admin/dashboard')
 @admin_required
@@ -354,7 +351,7 @@ def admin_dashboard():
                            categories=categories, stats=stats,
                            username=session.get('admin_username','admin'))
 
-# ── Admin API ────────────────────────────────────────────────────────────────────────
+# ── Admin API ──────────────────────────────────────────────────────────────────
 @app.route('/admin/api/orders')
 @admin_required
 def admin_api_orders():
@@ -373,7 +370,7 @@ def admin_update_status(oid):
     status = request.get_json().get('status','')
     valid  = ['received','preparing','ready','completed','cancelled']
     if status not in valid:
-        return jsonify({"error": "Invalid status"}), 400
+        return jsonify({'error': 'Invalid status'}), 400
     db = get_db()
     db.execute("UPDATE orders SET status=?,updated_at=datetime('now','localtime') WHERE id=?",
                (status, oid))
@@ -418,8 +415,8 @@ def admin_menu_update(mid):
                   SET category=?,name=?,description=?,price=?,vegan=?,allergens=?,active=?
                   WHERE id=?''',
                (data['category'], data['name'], data.get('description',''),
-                float(data['price']), 1 if data.get('vegan', True) else 0, allergens_json,
-                1 if data.get('active', True) else 0, mid))
+                float(data['price']), 1 if data.get('vegan') else 0,
+                allergens_json, 1 if data.get('active', True) else 0, mid))
     db.commit()
     return jsonify({'success': True})
 
