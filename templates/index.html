@@ -219,8 +219,11 @@ footer{background:#07101A;padding:22px 0}
 .co-sel:focus{border-color:var(--gold)}
 .co-ta{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;color:var(--text);height:74px;resize:none;transition:border-color .2s}
 .co-ta:focus{border-color:var(--gold)}
-.place-btn{flex:1;background:var(--gold);color:var(--white);padding:13px;border-radius:9px;font-size:.97rem;font-weight:700;transition:background .2s}
+.place-btn{width:100%;background:var(--gold);color:var(--white);padding:13px;border-radius:9px;font-size:.97rem;font-weight:700;transition:background .2s}
 .place-btn:hover{background:var(--gold2)}
+.pay-method-btn{display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:8px;font-size:.84rem;font-weight:600;border:2px solid var(--border);background:var(--white);color:var(--text2);cursor:pointer;transition:all .2s}
+.pay-method-btn.active{background:var(--navy);border-color:var(--navy);color:var(--white)}
+.pay-method-btn:hover:not(.active){border-color:var(--navy);color:var(--navy)}
 
 /* Success */
 .suc-modal{text-align:center;padding:44px 28px;align-items:center;max-width:380px}
@@ -301,6 +304,7 @@ footer{background:#07101A;padding:22px 0}
       <li><a href="#about">About</a></li>
       <li><a href="#book">Book</a></li>
       <li><a href="#contact">Contact</a></li>
+      <li><a href="/order/status">Track Order</a></li>
     </ul>
     <div class="nav-acts">
       <button class="cart-btn" onclick="openCart()" aria-label="View cart">
@@ -337,9 +341,18 @@ footer{background:#07101A;padding:22px 0}
   <div class="container ot-inner">
     <span class="ot-label">Order type:</span>
     <div class="ot-btns">
-      <button class="ot-btn active" onclick="setOT(this,'Dine-in')">Dine-in</button>
-      <button class="ot-btn" onclick="setOT(this,'Takeaway')">Takeaway</button>
-      <button class="ot-btn" onclick="setOT(this,'Collection')">Collection</button>
+      <button class="ot-btn active" onclick="setOT(this,'Dine-in')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>Dine-in
+      </button>
+      <button class="ot-btn" onclick="setOT(this,'Takeaway')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Takeaway
+      </button>
+      <button class="ot-btn" onclick="setOT(this,'Collection')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>Collection
+      </button>
+      <button class="ot-btn" onclick="setOT(this,'Delivery')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Delivery
+      </button>
     </div>
     <span class="halal-tag">100% Halal Certified</span>
   </div>
@@ -596,9 +609,14 @@ footer{background:#07101A;padding:22px 0}
         <input class="co-in" type="text" id="co-name" placeholder="Full Name *">
         <input class="co-in" type="tel" id="co-phone" placeholder="Phone Number *">
         <input class="co-in" type="email" id="co-email" placeholder="Email (optional)">
+        <!-- Delivery address fields -->
+        <div id="co-addr-wrap" style="display:none">
+          <input class="co-in" type="text" id="co-address" placeholder="Delivery Address *">
+          <input class="co-in" type="text" id="co-postcode" placeholder="Postcode *" style="margin-top:8px">
+        </div>
         <div id="co-time-wrap">
           <select class="co-sel" id="co-time">
-            <option value="ASAP">Collection: ASAP (~25 min)</option>
+            <option value="ASAP">ASAP (~25 min)</option>
             <option value="30min">Ready in 30 minutes</option>
             <option value="45min">Ready in 45 minutes</option>
             <option value="1hr">Ready in 1 hour</option>
@@ -606,9 +624,48 @@ footer{background:#07101A;padding:22px 0}
         </div>
         <textarea class="co-ta" id="co-notes" placeholder="Any special instructions..."></textarea>
       </div>
+
+      <!-- Discount code -->
+      <div class="co-sec">
+        <h4>Discount Code</h4>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="co-in" type="text" id="co-promo" placeholder="Enter promo code" style="margin:0;text-transform:uppercase;flex:1">
+          <button onclick="applyPromo()" style="padding:10px 16px;background:var(--navy);color:#fff;border-radius:8px;font-weight:600;font-size:.85rem;white-space:nowrap;flex-shrink:0">Apply</button>
+        </div>
+        <div id="promo-msg" style="font-size:.8rem;margin-top:6px;display:none"></div>
+      </div>
+
+      <!-- Payment method -->
+      <div class="co-sec">
+        <h4>Payment Method</h4>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="pay-method-btn active" onclick="setPayMethod(this,'cash')" data-method="cash">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Pay on Arrival
+          </button>
+          {% if stripe_on %}
+          <button class="pay-method-btn" onclick="setPayMethod(this,'card')" data-method="card">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Card / GPay / Apple Pay
+          </button>
+          {% endif %}
+        </div>
+        <!-- Stripe Payment Element -->
+        {% if stripe_on %}
+        <div id="stripe-wrap" style="display:none;margin-top:12px">
+          <div id="stripe-element"></div>
+          <div id="stripe-err" style="color:var(--red);font-size:.82rem;margin-top:6px"></div>
+        </div>
+        {% endif %}
+      </div>
     </div>
-    <div class="m-foot">
-      <span class="m-price" id="co-total-disp">&#163;0.00</span>
+    <div class="m-foot" style="flex-direction:column;gap:6px;align-items:stretch">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px">
+        <div>
+          <span class="m-price" id="co-total-disp">&#163;0.00</span>
+          <span id="co-discount-disp" style="font-size:.8rem;color:var(--green);margin-left:8px;display:none"></span>
+        </div>
+      </div>
       <button class="place-btn" onclick="placeOrder()">Place Order</button>
     </div>
   </div>
@@ -620,6 +677,12 @@ footer{background:#07101A;padding:22px 0}
     <div class="suc-icon">&#10003;</div>
     <h3>Order Received!</h3>
     <p id="ord-suc-msg">We'll call you shortly to confirm.</p>
+    <div id="ord-id-wrap" style="background:var(--warm);border-radius:10px;padding:12px 18px;margin-bottom:18px;display:none">
+      <div style="font-size:.75rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Your Order ID</div>
+      <div id="ord-id-disp" style="font-size:1.6rem;font-weight:800;color:var(--navy);letter-spacing:.12em"></div>
+      <div style="font-size:.75rem;color:var(--text2);margin-top:4px">Save this to track your order</div>
+    </div>
+    <a id="ord-track-link" href="/order/status" style="display:none;background:var(--navy);color:#fff;padding:10px 22px;border-radius:8px;font-weight:600;font-size:.88rem;margin-bottom:12px;text-decoration:none">Track My Order</a>
     <button class="suc-close" onclick="document.getElementById('ord-suc-ov').classList.remove('open')">Done</button>
   </div>
 </div>
@@ -725,7 +788,70 @@ function setOT(btn, type) {
   document.querySelectorAll('.ot-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   orderType = type;
-  document.getElementById('c-ot').textContent = type;
+  if (document.getElementById('c-ot')) document.getElementById('c-ot').textContent = type;
+  // Show/hide delivery address fields
+  const addrWrap = document.getElementById('co-addr-wrap');
+  if (addrWrap) addrWrap.style.display = (type === 'Delivery') ? 'block' : 'none';
+}
+
+/* PAYMENT METHOD */
+let payMethod = 'cash';
+function setPayMethod(btn, method) {
+  document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  payMethod = method;
+  const sw = document.getElementById('stripe-wrap');
+  if (sw) sw.style.display = (method === 'card') ? 'block' : 'none';
+}
+
+/* PROMO CODES */
+const PROMO_CODES = {
+  'WELCOME10': { type:'percent', value:10, label:'10% off' },
+  'SPICE20':   { type:'percent', value:20, label:'20% off' },
+  'FLAT5':     { type:'fixed',   value:5,  label:'£5 off' },
+  'HALAL15':   { type:'percent', value:15, label:'15% off' },
+};
+let activePromo = null;
+
+function applyPromo() {
+  const code = (document.getElementById('co-promo').value || '').trim().toUpperCase();
+  const msg  = document.getElementById('promo-msg');
+  if (!code) { showPromoMsg('Enter a promo code first.','red'); return; }
+  if (PROMO_CODES[code]) {
+    activePromo = { code, ...PROMO_CODES[code] };
+    showPromoMsg(`✓ ${activePromo.label} applied!`, 'green');
+    updateCheckoutTotal();
+  } else {
+    activePromo = null;
+    showPromoMsg('Invalid promo code.', 'red');
+    updateCheckoutTotal();
+  }
+}
+function showPromoMsg(txt, color) {
+  const el = document.getElementById('promo-msg');
+  el.textContent = txt;
+  el.style.color = color === 'green' ? 'var(--green)' : 'var(--red)';
+  el.style.display = 'block';
+}
+function calcDiscountedTotal(raw) {
+  if (!activePromo) return raw;
+  if (activePromo.type === 'percent') return Math.max(0, raw - (raw * activePromo.value / 100));
+  return Math.max(0, raw - activePromo.value);
+}
+function updateCheckoutTotal() {
+  const raw  = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const final = calcDiscountedTotal(raw);
+  const el   = document.getElementById('co-total-disp');
+  const dd   = document.getElementById('co-discount-disp');
+  if (el) el.textContent = '£' + final.toFixed(2);
+  if (dd) {
+    if (activePromo && final < raw) {
+      dd.textContent = `(-£${(raw - final).toFixed(2)} ${activePromo.label})`;
+      dd.style.display = 'inline';
+    } else {
+      dd.style.display = 'none';
+    }
+  }
 }
 
 /* MENU TABS */
@@ -747,6 +873,23 @@ function openCart() {
 function closeCart() {
   document.getElementById('c-overlay').classList.remove('open');
   document.getElementById('c-drawer').classList.remove('open');
+}
+function openCheckout() {
+  closeCart();
+  // Populate order summary
+  const sum = document.getElementById('co-sum');
+  if (sum) {
+    sum.innerHTML = cart.map(i =>
+      `<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0">
+        <span>${i.qty}× ${i.name}</span><span>£${(i.price*i.qty).toFixed(2)}</span>
+      </div>`
+    ).join('');
+  }
+  updateCheckoutTotal();
+  document.getElementById('co-ov').classList.add('open');
+}
+function closeCheckout() {
+  document.getElementById('co-ov').classList.remove('open');
 }
 function renderCart() {
   const list = document.getElementById('c-list');
@@ -791,150 +934,4 @@ const NO_SPICE = ['Drinks', 'Desserts', 'Breads & Rice'];
 
 function openCust(btn) {
   cItem = { name: btn.dataset.name, price: parseFloat(btn.dataset.price), cat: btn.dataset.cat, desc: btn.dataset.desc };
-  cQty = 1; cSpice = 'Mild'; cPortion = 'Regular'; cEx = 0;
-  document.getElementById('cust-title').textContent = cItem.name;
-  document.getElementById('cust-desc').textContent = cItem.desc;
-  document.getElementById('cust-qty').textContent = '1';
-  document.getElementById('cust-notes').value = '';
-  document.getElementById('spice-sec').style.display = NO_SPICE.includes(cItem.cat) ? 'none' : 'block';
-  document.getElementById('portion-sec').style.display = cItem.cat === 'Drinks' ? 'none' : 'block';
-  document.querySelectorAll('#spice-grp .pill').forEach(p => p.classList.toggle('active', p.dataset.v === 'Mild'));
-  document.querySelectorAll('#portion-grp .pill').forEach(p => p.classList.toggle('active', p.dataset.v === 'Regular'));
-  updCustP();
-  document.getElementById('cust-ov').classList.add('open');
-}
-function closeCust() { document.getElementById('cust-ov').classList.remove('open'); }
-function updCustP() {
-  if (!cItem) return;
-  document.getElementById('cust-price').innerHTML = '&#163;' + ((cItem.price + cEx) * cQty).toFixed(2);
-}
-function chQty(d) { cQty = Math.max(1, cQty + d); document.getElementById('cust-qty').textContent = cQty; updCustP(); }
-
-document.getElementById('spice-grp').addEventListener('click', e => {
-  const b = e.target.closest('.pill'); if (!b) return;
-  document.querySelectorAll('#spice-grp .pill').forEach(p => p.classList.remove('active'));
-  b.classList.add('active'); cSpice = b.dataset.v;
-});
-document.getElementById('portion-grp').addEventListener('click', e => {
-  const b = e.target.closest('.pill'); if (!b) return;
-  document.querySelectorAll('#portion-grp .pill').forEach(p => p.classList.remove('active'));
-  b.classList.add('active'); cPortion = b.dataset.v; cEx = parseFloat(b.dataset.ex || 0); updCustP();
-});
-
-function confirmAdd() {
-  if (!cItem) return;
-  cart.push({ name: cItem.name, price: cItem.price + cEx, qty: cQty,
-    spice: NO_SPICE.includes(cItem.cat) ? '' : cSpice,
-    portion: cPortion, notes: document.getElementById('cust-notes').value.trim(), cat: cItem.cat });
-  closeCust(); openCart();
-}
-
-/* CHECKOUT */
-function openCheckout() {
-  if (!cart.length) return;
-  closeCart();
-  let html = '', tot = 0;
-  cart.forEach(i => {
-    const lt = i.price * i.qty; tot += lt;
-    html += '<div class="co-irow"><span>' + i.qty + 'x ' + i.name + (i.portion === 'Large' ? ' (L)' : '') + '</span><span>&#163;' + lt.toFixed(2) + '</span></div>';
-  });
-  html += '<hr class="co-hr"><div class="co-tot"><span>Total</span><span>&#163;' + tot.toFixed(2) + '</span></div>';
-  document.getElementById('co-sum').innerHTML = html;
-  document.getElementById('co-total-disp').innerHTML = '&#163;' + tot.toFixed(2);
-  document.getElementById('co-time-wrap').style.display = orderType === 'Dine-in' ? 'none' : 'block';
-  document.getElementById('co-ov').classList.add('open');
-}
-function closeCheckout() { document.getElementById('co-ov').classList.remove('open'); }
-
-async function placeOrder() {
-  const name = document.getElementById('co-name').value.trim();
-  const phone = document.getElementById('co-phone').value.trim();
-  if (!name || !phone) { alert('Please enter your name and phone number.'); return; }
-  const tot = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const payload = {
-    order_type: orderType, name, phone,
-    email: document.getElementById('co-email').value.trim(),
-    time: document.getElementById('co-time').value,
-    notes: document.getElementById('co-notes').value.trim(),
-    items: cart, total: tot.toFixed(2)
-  };
-  try {
-    await fetch('/order', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-    closeCheckout();
-    document.getElementById('ord-suc-msg').textContent =
-      'Thanks ' + name + '! Your ' + orderType.toLowerCase() + ' order is confirmed. We\'ll call ' + phone + ' shortly.';
-    document.getElementById('ord-suc-ov').classList.add('open');
-    cart = []; renderCart();
-  } catch(e) { alert('Error placing order. Please call us on 01604 123456.'); }
-}
-
-/* BOOKING */
-document.getElementById('bd').min = new Date().toISOString().split('T')[0];
-async function submitBooking(e) {
-  e.preventDefault();
-  const payload = { name: document.getElementById('bn').value.trim(),
-    phone: document.getElementById('bp').value.trim(), email: document.getElementById('be').value.trim(),
-    date: document.getElementById('bd').value, time: document.getElementById('bt').value,
-    guests: document.getElementById('bg').value, notes: document.getElementById('bno').value.trim() };
-  try {
-    await fetch('/book', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-    document.getElementById('bk-suc-ov').classList.add('open');
-    document.querySelector('.book-form').reset();
-  } catch(e) { alert('Error. Please call 01604 123456.'); }
-}
-
-/* CHAT */
-let chatOpen = false, firstOpen = true;
-function toggleChat() {
-  chatOpen = !chatOpen;
-  document.getElementById('chat-win').classList.toggle('open', chatOpen);
-  document.getElementById('ci-open').style.display = chatOpen ? 'none' : 'block';
-  document.getElementById('ci-close').style.display = chatOpen ? 'block' : 'none';
-  document.getElementById('chat-notif').style.display = 'none';
-  if (chatOpen && firstOpen) { firstOpen = false; welcome(); }
-  if (chatOpen) document.getElementById('chat-input').focus();
-}
-function getT() { return new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
-function appendMsg(text, role) {
-  const m = document.getElementById('chat-msgs');
-  const d = document.createElement('div'); d.className = 'msg ' + role;
-  d.innerHTML = '<div class="msg-b">' + text.replace(/\n/g,'<br>') + '</div><div class="msg-t">' + getT() + '</div>';
-  m.appendChild(d); m.scrollTop = m.scrollHeight;
-}
-function showTyping() {
-  const m = document.getElementById('chat-msgs');
-  const d = document.createElement('div'); d.className = 'msg bot'; d.id = 'typ-ind';
-  d.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
-  m.appendChild(d); m.scrollTop = m.scrollHeight;
-}
-function hideTyping() { document.getElementById('typ-ind')?.remove(); }
-function welcome() {
-  setTimeout(() => appendMsg("Hi! I'm the Masala Kitchen AI — I know our full menu, deals, hours, and can help with bookings.\n\nWhat can I help you with?", 'bot'), 350);
-}
-async function sendMsg(text) {
-  const inp = document.getElementById('chat-input');
-  const msg = text || inp.value.trim(); if (!msg) return;
-  if (!text) inp.value = '';
-  appendMsg(msg, 'user'); showTyping();
-  try {
-    const r = await fetch('/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg}) });
-    const d = await r.json(); hideTyping();
-    appendMsg(d.reply || 'Sorry, something went wrong.', 'bot');
-  } catch(e) { hideTyping(); appendMsg('Could not reach the server. Please check your connection.', 'bot'); }
-}
-function sendQ(text) { if (!chatOpen) toggleChat(); setTimeout(() => sendMsg(text), firstOpen ? 550 : 0); }
-async function resetChat() {
-  await fetch('/reset', {method:'POST'});
-  document.getElementById('chat-msgs').innerHTML = ''; welcome();
-}
-document.getElementById('chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
-setTimeout(() => { if (!chatOpen) document.getElementById('chat-notif').style.display = 'flex'; }, 3000);
-
-/* SCROLL FX */
-window.addEventListener('scroll', () => {
-  document.getElementById('hdr').style.boxShadow = window.scrollY > 10 ? '0 2px 32px rgba(0,0,0,.45)' : '';
-});
-</script>
-{% endraw %}
-</body>
-</html>
+  cQty = 1; cSpice = 'Mild'; cPor
