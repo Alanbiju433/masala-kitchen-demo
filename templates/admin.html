@@ -202,7 +202,10 @@ tr:hover td{background:#fdfaf8}
     <div class="section active" id="sec-orders">
       <div class="section-header">
         <h2>All Orders</h2>
-        <button class="btn btn-ghost btn-sm" onclick="loadOrders()">↻ Refresh</button>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <span id="orders-refresh-info" style="font-size:.75rem;color:#aaa"></span>
+          <button class="btn btn-ghost btn-sm" onclick="loadOrders()">&#8635; Refresh</button>
+        </div>
       </div>
       <div class="filter-tabs">
         <button class="filter-tab active" onclick="filterOrders('all',this)">All</button>
@@ -343,9 +346,22 @@ let allOrders = [];
 let currentFilter = 'all';
 
 function loadOrders() {
+  const info = document.getElementById('orders-refresh-info');
+  if (info) info.textContent = 'Loading...';
   fetch('/admin/api/orders')
-    .then(r=>r.json())
-    .then(data => { allOrders = data; renderOrders(); });
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => {
+      allOrders = data;
+      renderOrders();
+      const now = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      if (info) info.textContent = 'Updated ' + now + ' · ' + data.length + ' order' + (data.length===1?'':'s');
+    })
+    .catch(err => {
+      console.error('loadOrders error', err);
+      const tbody = document.getElementById('ordersBody');
+      if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:#c0392b">&#9888; Could not load orders (' + err.message + '). <a href="#" onclick="loadOrders();return false" style="color:var(--red)">Retry</a></td></tr>';
+      if (info) info.textContent = 'Load failed';
+    });
 }
 
 function filterOrders(status, el) {
@@ -391,7 +407,8 @@ function renderOrders() {
     tbody.appendChild(tr);
   });
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:#aaa">No orders found</td></tr>';
+    const msg = allOrders.length ? 'No orders match this filter.' : '&#128203; No orders yet. Orders placed on the website appear here automatically.';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2.5rem;color:#aaa">' + msg + '</td></tr>';
   }
 }
 
