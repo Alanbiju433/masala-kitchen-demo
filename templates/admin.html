@@ -3,524 +3,536 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin – Masala Kitchen</title>
+<title>Masala Kitchen â Admin</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --red:#c0392b;--dark:#1a0a00;--gold:#f39c12;--green:#27ae60;
-  --blue:#2980b9;--sidebar-w:220px;--bg:#f5f5f5
-}
-body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#222;display:flex;min-height:100vh}
-
-/* ── Sidebar ── */
-.sidebar{width:var(--sidebar-w);background:var(--dark);color:#fff;
-          display:flex;flex-direction:column;flex-shrink:0;position:fixed;
-          top:0;left:0;height:100vh;z-index:100}
-.sb-logo{padding:1.2rem 1rem 1rem;border-bottom:1px solid rgba(255,255,255,.1)}
-.sb-logo h2{font-size:1rem;font-weight:700;color:var(--gold)}
-.sb-logo p{font-size:.75rem;color:#aaa;margin-top:.15rem}
-.sb-nav{flex:1;padding:.75rem 0;overflow-y:auto}
-.sb-item{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;
-          cursor:pointer;color:rgba(255,255,255,.75);font-size:.88rem;
-          transition:all .15s;border-left:3px solid transparent}
-.sb-item:hover{background:rgba(255,255,255,.07);color:#fff}
-.sb-item.active{background:rgba(192,57,43,.2);color:#fff;border-left-color:var(--red)}
-.sb-icon{width:18px;height:18px;flex-shrink:0}
-.sb-bottom{padding:1rem;border-top:1px solid rgba(255,255,255,.1)}
-.sb-user{font-size:.78rem;color:#aaa;margin-bottom:.5rem}
-.sb-user strong{color:#fff;display:block}
-.sb-logout{display:block;text-align:center;padding:.4rem;background:rgba(255,255,255,.1);
-            border-radius:6px;color:#ddd;font-size:.8rem;text-decoration:none;transition:.15s}
-.sb-logout:hover{background:rgba(255,255,255,.2);color:#fff}
-
-/* ── Main ── */
-.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-width:0}
-.topbar{background:#fff;border-bottom:1px solid #e0e0e0;padding:.75rem 1.5rem;
-         display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.topbar h1{font-size:1.1rem;font-weight:700;color:var(--dark)}
-.topbar .live-badge{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:#666}
-.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.content{flex:1;padding:1.5rem;overflow-y:auto}
-
-/* ── Stats ── */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem}
-.stat-card{background:#fff;border-radius:12px;padding:1.1rem 1rem;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.stat-card .label{font-size:.75rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-.stat-card .value{font-size:1.8rem;font-weight:800;color:var(--dark);margin:.2rem 0}
-.stat-card .sub{font-size:.75rem;color:#aaa}
-.stat-card.red .value{color:var(--red)}
-.stat-card.gold .value{color:var(--gold)}
-.stat-card.green .value{color:var(--green)}
-
-/* ── Section ── */
-.section{display:none}
-.section.active{display:block}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-.section-header h2{font-size:1rem;font-weight:700;color:var(--dark)}
-.btn{padding:.5rem 1rem;border:none;border-radius:7px;font-weight:600;cursor:pointer;font-size:.85rem;transition:.15s}
-.btn-primary{background:var(--red);color:#fff}
-.btn-primary:hover{opacity:.88}
-.btn-sm{padding:.3rem .7rem;font-size:.78rem;border-radius:5px}
-.btn-green{background:var(--green);color:#fff}
-.btn-blue{background:var(--blue);color:#fff}
-.btn-ghost{background:#f0f0f0;color:#555}
-.btn-ghost:hover{background:#e0e0e0}
-.btn-danger{background:#e74c3c;color:#fff}
-
-/* ── Table ── */
-.table-wrap{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden}
-table{width:100%;border-collapse:collapse;font-size:.84rem}
-th{background:#fafafa;padding:.65rem .9rem;text-align:left;font-size:.75rem;
-   font-weight:700;color:#888;text-transform:uppercase;border-bottom:1px solid #eee}
-td{padding:.6rem .9rem;border-bottom:1px solid #f5f5f5;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#fdfaf8}
-
-/* Status badges */
-.badge{display:inline-block;padding:.2rem .6rem;border-radius:4px;font-size:.73rem;font-weight:700;text-transform:capitalize}
-.badge-received{background:#e3f2fd;color:#1565c0}
-.badge-preparing{background:#fff8e1;color:#f57f17}
-.badge-ready{background:#e8f5e9;color:#2e7d32}
-.badge-completed{background:#f3e5f5;color:#6a1b9a}
-.badge-cancelled{background:#ffebee;color:#c62828}
-
-/* Status select */
-.status-sel{padding:.25rem .5rem;border:1.5px solid #ddd;border-radius:5px;font-size:.8rem;cursor:pointer}
-.status-sel:focus{outline:none;border-color:var(--red)}
-
-/* ── Modal ── */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
-                align-items:center;justify-content:center}
-.modal-overlay.show{display:flex}
-.modal{background:#fff;border-radius:14px;padding:1.5rem;width:100%;max-width:480px;
-       box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto}
-.modal h3{font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--dark)}
-.form-row{margin-bottom:.9rem}
-.form-row label{display:block;font-size:.8rem;font-weight:600;color:#555;margin-bottom:.3rem}
-.form-row input,.form-row select,.form-row textarea{
-  width:100%;padding:.55rem .8rem;border:1.5px solid #ddd;border-radius:7px;font-size:.88rem}
-.form-row input:focus,.form-row select:focus,.form-row textarea:focus{
-  outline:none;border-color:var(--red)}
-.modal-footer{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem}
-.form-row .check-row{display:flex;align-items:center;gap:.5rem}
-.form-row .check-row input{width:auto}
-
-/* Order detail */
-.order-detail{font-size:.82rem;max-width:300px}
-.od-items{background:#fafafa;border-radius:6px;padding:.5rem .7rem;margin-top:.25rem}
-.od-item{padding:.2rem 0;border-bottom:1px dashed #eee;display:flex;justify-content:space-between}
-.od-item:last-child{border-bottom:none}
-
-/* Tabs for filter */
-.filter-tabs{display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap}
-.filter-tab{padding:.35rem .75rem;border-radius:20px;font-size:.78rem;font-weight:600;
-             cursor:pointer;background:#f0f0f0;color:#666;transition:.15s;border:none}
-.filter-tab.active{background:var(--red);color:#fff}
-
-/* Settings */
-.settings-card{background:#fff;border-radius:12px;padding:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.06);
-                max-width:440px;margin-bottom:1rem}
-.settings-card h3{font-size:.9rem;font-weight:700;margin-bottom:.75rem;color:var(--dark)}
-.msg-box{padding:.5rem .8rem;border-radius:6px;font-size:.82rem;margin-top:.5rem;display:none}
-.msg-box.ok{background:#d4edda;color:#155724;display:block}
-.msg-box.err{background:#f8d7da;color:#721c24;display:block}
-
-@media(max-width:700px){
-  .sidebar{transform:translateX(-100%);transition:.25s}
-  .main{margin-left:0}
-}
+:root{--navy:#0f1a2e;--navy2:#162236;--gold:#c9973a;--gold2:#e8b44a;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;--text:#e2e8f0;--muted:#94a3b8;--card:#1e2d47;--border:#2a3f60;--sidebar:220px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--text);display:flex;min-height:100vh}
+#sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.sb-logo{padding:24px 20px;border-bottom:1px solid var(--border)}
+.sb-logo h1{font-size:1.1rem;font-weight:700;color:var(--gold)}
+.sb-logo p{font-size:.7rem;color:var(--muted);margin-top:2px}
+nav{flex:1;padding:16px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;cursor:pointer;color:var(--muted);font-size:.85rem;font-weight:500;transition:all .15s;border-left:3px solid transparent}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,151,58,.08)}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:999px;display:none}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.sb-user{font-size:.8rem;color:var(--muted)}
+.sb-user strong{color:var(--text);display:block;margin-bottom:4px}
+.logout-btn{display:inline-block;margin-top:8px;font-size:.75rem;color:var(--red);text-decoration:none}
+#main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--navy2);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h2{font-size:1.1rem;font-weight:600}
+#notif-bell{position:relative;background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.3rem;padding:4px 8px}
+#notif-bell.ringing{color:var(--gold);animation:ring .4s ease 3}
+@keyframes ring{0%,100%{transform:rotate(0)}25%{transform:rotate(-15deg)}75%{transform:rotate(15deg)}}
+#notif-count{position:absolute;top:0;right:0;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;min-width:16px;height:16px;border-radius:999px;display:none;align-items:center;justify-content:center}
+.content{padding:24px 28px;flex:1;overflow-y:auto}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.blue::before{background:var(--blue)}
+.stat-card.amber::before{background:var(--amber)}
+.stat-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.stat-value{font-size:2rem;font-weight:700;color:var(--text)}
+.stat-sub{font-size:.72rem;color:var(--muted);margin-top:4px}
+.charts-row{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:28px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.chart-card h3{font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:16px;text-transform:uppercase;letter-spacing:.04em}
+.chart-wrap{position:relative;height:200px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-header h3{font-size:1rem;font-weight:600}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;transition:all .15s}
+.filter-btn.active,.filter-btn:hover{background:var(--gold);border-color:var(--gold);color:#000}
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead{background:rgba(255,255,255,.04)}
+th{padding:12px 14px;text-align:left;font-weight:600;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+td{padding:12px 14px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:600;text-transform:uppercase}
+.badge-received{background:rgba(59,130,246,.15);color:#93c5fd}
+.badge-preparing{background:rgba(245,158,11,.15);color:#fcd34d}
+.badge-ready{background:rgba(168,85,247,.15);color:#c4b5fd}
+.badge-completed{background:rgba(34,197,94,.15);color:#86efac}
+.badge-cancelled{background:rgba(239,68,68,.15);color:#fca5a5}
+.badge-pending{background:rgba(156,163,175,.15);color:#9ca3af}
+.badge-confirmed{background:rgba(34,197,94,.15);color:#86efac}
+.badge-paid{background:rgba(34,197,94,.15);color:#86efac}
+.status-sel{background:var(--navy2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:8px;font-size:.78rem;cursor:pointer}
+.status-sel:focus{outline:none;border-color:var(--gold)}
+.order-items-list{display:none;padding:10px 14px;background:rgba(0,0,0,.2);border-top:1px solid var(--border)}
+.order-items-list.open{display:block}
+.order-item-row{display:flex;justify-content:space-between;padding:3px 0;font-size:.8rem;color:var(--muted)}
+.expand-btn{background:none;border:none;color:var(--gold);cursor:pointer;font-size:.8rem;text-decoration:underline}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+label{font-size:.78rem;color:var(--muted);font-weight:500}
+input,select,textarea{background:var(--navy2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:.85rem;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+textarea{resize:vertical;min-height:80px}
+.btn{padding:10px 20px;border-radius:10px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .15s}
+.btn-gold{background:var(--gold);color:#000}
+.btn-gold:hover{background:var(--gold2)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid var(--red)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-sm{padding:6px 12px;font-size:.75rem}
+.action-btns{display:flex;gap:8px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;padding:28px}
+.modal h3{font-size:1.05rem;font-weight:700;margin-bottom:20px;color:var(--gold)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+#toast{position:fixed;bottom:28px;right:28px;z-index:999;background:#1e293b;border:1px solid var(--border);border-radius:12px;padding:14px 20px;font-size:.85rem;transform:translateY(100px);opacity:0;transition:all .3s;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{border-left:4px solid var(--green)}
+#toast.err{border-left:4px solid var(--red)}
+.search-input{background:var(--navy2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-size:.83rem;width:240px}
+.search-input:focus{outline:none;border-color:var(--gold)}
+#notif-banner{display:none;background:rgba(201,151,58,.12);border:1px solid var(--gold);border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:.85rem;color:var(--gold)}
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<aside class="sidebar">
+<aside id="sidebar">
   <div class="sb-logo">
-    <h2>🍛 Masala Kitchen</h2>
+    <h1>ð Masala Kitchen</h1>
     <p>Admin Panel</p>
   </div>
-  <nav class="sb-nav">
-    <div class="sb-item active" onclick="showSection('orders',this)">
-      <svg class="sb-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-      </svg>
-      Orders
+  <nav>
+    <div class="nav-item active" onclick="showTab('orders')">
+      <span>ð</span> Orders
+      <span class="nav-badge" id="sb-pending"></span>
     </div>
-    <div class="sb-item" onclick="showSection('menu',this)">
-      <svg class="sb-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-      </svg>
-      Menu Editor
+    <div class="nav-item" onclick="showTab('bookings')">
+      <span>ð</span> Bookings
     </div>
-    <div class="sb-item" onclick="showSection('settings',this)">
-      <svg class="sb-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/>
-      </svg>
-      Settings
+    <div class="nav-item" onclick="showTab('menu')">
+      <span>ð½ï¸</span> Menu Editor
+    </div>
+    <div class="nav-item" onclick="showTab('analytics')">
+      <span>ð</span> Analytics
+    </div>
+    <div class="nav-item" onclick="showTab('settings')">
+      <span>âï¸</span> Settings
     </div>
   </nav>
-  <div class="sb-bottom">
-    <div class="sb-user">Logged in as<strong>{{ username }}</strong></div>
-    <a class="sb-logout" href="/admin/logout">Sign Out</a>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <strong>{{ username }}</strong>
+      Administrator
+    </div>
+    <a href="/admin/logout" class="logout-btn">ðª Sign out</a>
   </div>
 </aside>
 
-<!-- Main -->
-<div class="main">
+<div id="main">
   <div class="topbar">
-    <h1 id="pageTitle">Orders</h1>
-    <div class="live-badge"><span class="live-dot"></span> Live</div>
+    <h2 id="topbar-title">Orders</h2>
+    <button id="notif-bell" title="New orders" onclick="showTab('orders')">
+      ð<span id="notif-count"></span>
+    </button>
   </div>
+
   <div class="content">
+    <div id="notif-banner"></div>
 
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="label">Total Orders</div>
-        <div class="value">{{ stats.total_orders }}</div>
-        <div class="sub">All time</div>
-      </div>
-      <div class="stat-card gold">
-        <div class="label">Today's Orders</div>
-        <div class="value">{{ stats.today_orders }}</div>
-        <div class="sub">Today</div>
-      </div>
-      <div class="stat-card green">
-        <div class="label">Today's Revenue</div>
-        <div class="value">£{{ "%.2f"|format(stats.today_revenue) }}</div>
-        <div class="sub">Today</div>
-      </div>
-      <div class="stat-card red">
-        <div class="label">Pending</div>
-        <div class="value">{{ stats.pending }}</div>
-        <div class="sub">Awaiting prep</div>
-      </div>
-    </div>
-
-    <!-- Orders Section -->
-    <div class="section active" id="sec-orders">
-      <div class="section-header">
-        <h2>All Orders</h2>
-        <div style="display:flex;align-items:center;gap:.75rem">
-          <span id="orders-refresh-info" style="font-size:.75rem;color:#aaa"></span>
-          <button class="btn btn-ghost btn-sm" onclick="loadOrders()">&#8635; Refresh</button>
+    <!-- ORDERS -->
+    <div id="tab-orders" class="tab-panel active">
+      <div class="stats-grid">
+        <div class="stat-card amber">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value" id="s-pending">{{ stats.pending }}</div>
+          <div class="stat-sub">Need action</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Today's Orders</div>
+          <div class="stat-value">{{ stats.today_orders }}</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Today's Revenue</div>
+          <div class="stat-value">Â£{{ "%.2f"|format(stats.today_revenue) }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">All Time Orders</div>
+          <div class="stat-value">{{ stats.total_orders }}</div>
         </div>
       </div>
-      <div class="filter-tabs">
-        <button class="filter-tab active" onclick="filterOrders('all',this)">All</button>
-        <button class="filter-tab" onclick="filterOrders('received',this)">Received</button>
-        <button class="filter-tab" onclick="filterOrders('preparing',this)">Preparing</button>
-        <button class="filter-tab" onclick="filterOrders('ready',this)">Ready</button>
-        <button class="filter-tab" onclick="filterOrders('completed',this)">Completed</button>
-        <button class="filter-tab" onclick="filterOrders('cancelled',this)">Cancelled</button>
-      </div>
-      <div class="table-wrap">
-        <table id="ordersTable">
-          <thead>
-            <tr>
-              <th>ID</th><th>Type</th><th>Customer</th><th>Items</th>
-              <th>Total</th><th>Payment</th><th>Status</th><th>Time</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="ordersBody"></tbody>
-        </table>
-      </div>
-    </div>
 
-    <!-- Menu Section -->
-    <div class="section" id="sec-menu">
       <div class="section-header">
-        <h2>Menu Items</h2>
-        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Item</button>
+        <h3>Live Orders</h3>
+        <input class="search-input" placeholder="Search name, ID, phoneâ¦" oninput="filterOrders(this.value)">
       </div>
-      <div class="table-wrap">
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn" onclick="setFilter('received',this)">Received</button>
+        <button class="filter-btn" onclick="setFilter('preparing',this)">Preparing</button>
+        <button class="filter-btn" onclick="setFilter('ready',this)">Ready</button>
+        <button class="filter-btn" onclick="setFilter('completed',this)">Completed</button>
+        <button class="filter-btn" onclick="setFilter('cancelled',this)">Cancelled</button>
+      </div>
+      <div class="tbl-wrap">
         <table>
-          <thead>
-            <tr><th>Category</th><th>Name</th><th>Description</th><th>Price</th><th>Vegan</th><th>Status</th><th>Actions</th></tr>
-          </thead>
-          <tbody id="menuBody">
-            {% for item in menu_items %}
-            <tr id="mrow-{{ item.id }}" class="{{ 'inactive' if not item.active else '' }}">
-              <td>{{ item.category }}</td>
-              <td><strong>{{ item.name }}</strong></td>
-              <td style="color:#888;font-size:.8rem;max-width:200px">{{ item.description[:60] }}{% if item.description|length > 60 %}…{% endif %}</td>
-              <td>£{{ "%.2f"|format(item.price) }}</td>
-              <td>{{ '🌱' if item.vegan else '' }}</td>
-              <td><span class="badge {{ 'badge-ready' if item.active else 'badge-cancelled' }}">
-                {{ 'Active' if item.active else 'Hidden' }}</span></td>
-              <td>
-                <button class="btn btn-blue btn-sm" onclick='editItem({{ item|tojson }})'>Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteItem({{ item.id }}, '{{ item.name }}')">Delete</button>
-              </td>
-            </tr>
-            {% endfor %}
+          <thead><tr>
+            <th>ID</th><th>Time</th><th>Customer</th><th>Type</th>
+            <th>Items</th><th>Total</th><th>Payment</th><th>Status</th>
+          </tr></thead>
+          <tbody id="orders-tbody">
+          {% for o in orders %}
+          <tr class="order-row" data-status="{{ o.status }}" data-search="{{ o.name|lower }} {{ o.phone }} {{ o.id|lower }}">
+            <td><a href="/order/status?id={{ o.id }}" target="_blank" style="color:var(--gold);text-decoration:none;font-weight:600">#{{ o.id }}</a></td>
+            <td style="color:var(--muted);font-size:.75rem;white-space:nowrap">{{ o.created_at[:16] if o.created_at else '' }}</td>
+            <td>
+              <div style="font-weight:600">{{ o.name }}</div>
+              <div style="color:var(--muted);font-size:.75rem">{{ o.phone }}</div>
+              {% if o.address %}<div style="color:var(--muted);font-size:.72rem">{{ o.address }}{% if o.postcode %}, {{ o.postcode }}{% endif %}</div>{% endif %}
+            </td>
+            <td><span class="badge badge-received" style="font-size:.68rem">{{ o.order_type }}</span></td>
+            <td><button class="expand-btn" onclick="toggleItems('items-{{ o.id }}')">{{ o.items|length }} item(s) â¼</button></td>
+            <td>
+              <div style="font-weight:700">Â£{{ "%.2f"|format(o.total) }}</div>
+              {% if o.discount and o.discount > 0 %}<div style="color:var(--green);font-size:.72rem">-Â£{{ "%.2f"|format(o.discount) }} ({{ o.promo_code }})</div>{% endif %}
+            </td>
+            <td><span class="badge badge-{{ o.payment_status }}">{{ o.payment_method }}</span></td>
+            <td>
+              <select class="status-sel" onchange="updateOrderStatus('{{ o.id }}',this.value)">
+                {% for s in ['received','preparing','ready','completed','cancelled'] %}
+                <option value="{{ s }}" {% if o.status==s %}selected{% endif %}>{{ s|capitalize }}</option>
+                {% endfor %}
+              </select>
+            </td>
+          </tr>
+          <tr id="items-{{ o.id }}"><td colspan="8" style="padding:0">
+            <div class="order-items-list">
+              {% for item in o.items %}
+              <div class="order-item-row">
+                <span>{{ item.qty }}x {{ item.name }}{% if item.spice %} [{{ item.spice }}]{% endif %}{% if item.portion %} ({{ item.portion }}){% endif %}</span>
+                <span>Â£{{ "%.2f"|format(item.price * item.qty) }}</span>
+              </div>
+              {% endfor %}
+              {% if o.notes %}<div style="font-size:.78rem;color:var(--amber);margin-top:6px">ð {{ o.notes }}</div>{% endif %}
+            </div>
+          </td></tr>
+          {% else %}
+          <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px">No orders yet</td></tr>
+          {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Settings Section -->
-    <div class="section" id="sec-settings">
-      <div class="settings-card">
-        <h3>Change Password</h3>
-        <div class="form-row"><label>Current Password</label>
-          <input id="cpCurrent" type="password" placeholder="Enter current password">
+    <!-- BOOKINGS -->
+    <div id="tab-bookings" class="tab-panel">
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-label">Total Bookings</div>
+          <div class="stat-value">{{ stats.total_bookings }}</div>
         </div>
-        <div class="form-row"><label>New Password</label>
-          <input id="cpNew" type="password" placeholder="Min 6 characters">
+        <div class="stat-card green">
+          <div class="stat-label">Upcoming</div>
+          <div class="stat-value">{{ stats.upcoming_bookings }}</div>
+          <div class="stat-sub">Today &amp; future</div>
         </div>
-        <div class="form-row"><label>Confirm New Password</label>
-          <input id="cpConfirm" type="password" placeholder="Repeat new password">
-        </div>
-        <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
-        <div class="msg-box" id="cpMsg"></div>
       </div>
-      <div class="settings-card">
-        <h3>System Info</h3>
-        <p style="font-size:.83rem;color:#666;line-height:1.6">
-          Admin panel for Masala Kitchen.<br>
-          Data stored in SQLite — on Render free tier, data resets on each deploy.<br>
-          To persist data permanently, upgrade to a PostgreSQL addon.
-        </p>
+      <div class="section-header"><h3>Table Bookings</h3></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Date &amp; Time</th><th>Customer</th><th>Guests</th><th>Notes</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td style="color:var(--muted)">{{ b.id }}</td>
+            <td><div style="font-weight:600">{{ b.date }}</div><div style="color:var(--muted);font-size:.78rem">{{ b.time }}</div></td>
+            <td><div style="font-weight:600">{{ b.name }}</div><div style="color:var(--muted);font-size:.75rem">{{ b.phone }}</div>{% if b.email %}<div style="color:var(--muted);font-size:.72rem">{{ b.email }}</div>{% endif %}</td>
+            <td style="font-weight:700;font-size:1.1rem">{{ b.guests }}</td>
+            <td style="color:var(--muted);font-size:.8rem;max-width:180px">{{ b.notes or 'â' }}</td>
+            <td><span class="badge badge-{{ b.status }}">{{ b.status|capitalize }}</span></td>
+            <td><div class="action-btns">
+              <button class="btn btn-outline btn-sm" onclick="updateBooking({{ b.id }},'confirmed')">â Confirm</button>
+              <button class="btn btn-red btn-sm" onclick="updateBooking({{ b.id }},'cancelled')">â Cancel</button>
+            </div></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px">No bookings yet</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
 
-  </div><!-- /content -->
-</div><!-- /main -->
+    <!-- MENU -->
+    <div id="tab-menu" class="tab-panel">
+      <div class="section-header">
+        <h3>Menu Items</h3>
+        <button class="btn btn-gold" onclick="openMenuModal()">+ Add Item</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Category</th><th>Name</th><th>Description</th><th>Price</th><th>Tags</th><th>Active</th><th>Actions</th></tr></thead>
+          <tbody>
+          {% for item in menu_items %}
+          <tr {% if not item.active %}style="opacity:.45"{% endif %}>
+            <td style="color:var(--gold);font-size:.78rem;font-weight:600">{{ item.category }}</td>
+            <td style="font-weight:600">{{ item.name }}</td>
+            <td style="color:var(--muted);font-size:.78rem;max-width:200px">{{ item.description }}</td>
+            <td style="font-weight:700">Â£{{ "%.2f"|format(item.price) }}</td>
+            <td>
+              {% if item.vegan %}<span class="badge" style="background:rgba(34,197,94,.15);color:#86efac">ð±</span>{% endif %}
+              {% for a in item.allergens %}<span class="badge badge-pending" style="margin:2px;font-size:.62rem">{{ a }}</span>{% endfor %}
+            </td>
+            <td><span class="badge {% if item.active %}badge-completed{% else %}badge-cancelled{% endif %}">{% if item.active %}Active{% else %}Hidden{% endif %}</span></td>
+            <td><div class="action-btns">
+              <button class="btn btn-outline btn-sm" onclick='editMenu({{ item|tojson }})'>âï¸ Edit</button>
+              <button class="btn btn-red btn-sm" onclick="deleteMenu({{ item.id }})">ð</button>
+            </div></td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-<!-- Edit/Add Menu Modal -->
-<div class="modal-overlay" id="menuModal">
+    <!-- ANALYTICS -->
+    <div id="tab-analytics" class="tab-panel">
+      <div class="section-header">
+        <h3>Analytics</h3>
+        <span style="color:var(--muted);font-size:.8rem">Last 7 days</span>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Daily Revenue (Â£)</h3>
+          <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Top Dishes</h3>
+          <div class="chart-wrap"><canvas id="dishChart"></canvas></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Daily Order Count</h3>
+        <div class="chart-wrap" style="height:160px"><canvas id="orderCountChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="tab-settings" class="tab-panel">
+      <div style="max-width:480px">
+        <h3 style="margin-bottom:20px">Change Password</h3>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px">
+          <div class="form-grid" style="grid-template-columns:1fr">
+            <div class="form-group"><label>Current Password</label><input type="password" id="pw-current"></div>
+            <div class="form-group"><label>New Password</label><input type="password" id="pw-new"></div>
+            <div class="form-group"><label>Confirm New Password</label><input type="password" id="pw-confirm"></div>
+          </div>
+          <div style="margin-top:16px"><button class="btn btn-gold" onclick="changePassword()">Update Password</button></div>
+        </div>
+        <div style="margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px">
+          <h3 style="margin-bottom:12px">System Info</h3>
+          <div style="font-size:.82rem;color:var(--muted);line-height:1.8">
+            <div>Database: PostgreSQL (persistent â no data loss on deploy)</div>
+            <div>Admin login: /admin/login</div>
+            <div style="color:var(--amber);margin-top:8px">â ï¸ Change the default password immediately</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Menu Modal -->
+<div class="modal-overlay" id="menu-modal">
   <div class="modal">
-    <h3 id="modalTitle">Add Menu Item</h3>
-    <input type="hidden" id="editId">
-    <div class="form-row"><label>Category</label>
-      <input id="mCat" type="text" placeholder="e.g. Starters, Mains, Desserts">
-    </div>
-    <div class="form-row"><label>Name</label>
-      <input id="mName" type="text" placeholder="Dish name">
-    </div>
-    <div class="form-row"><label>Description</label>
-      <textarea id="mDesc" rows="2" placeholder="Short description"></textarea>
-    </div>
-    <div class="form-row"><label>Price (£)</label>
-      <input id="mPrice" type="number" step="0.01" min="0" placeholder="9.99">
-    </div>
-    <div class="form-row"><label>Allergens (comma-separated)</label>
-      <input id="mAllergens" type="text" placeholder="e.g. nuts, dairy, gluten">
-    </div>
-    <div class="form-row">
-      <div class="check-row">
-        <input id="mVegan" type="checkbox">
-        <label for="mVegan" style="margin:0">Vegan</label>
+    <h3 id="modal-title">Add Menu Item</h3>
+    <input type="hidden" id="modal-id">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="modal-cat">
+          {% for c in categories %}<option>{{ c }}</option>{% endfor %}
+        </select>
       </div>
-    </div>
-    <div class="form-row" id="activeRow">
-      <div class="check-row">
-        <input id="mActive" type="checkbox" checked>
-        <label for="mActive" style="margin:0">Active (visible on menu)</label>
-      </div>
+      <div class="form-group"><label>Name</label><input type="text" id="modal-name" placeholder="e.g. Chicken Tikka"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Description</label><textarea id="modal-desc" rows="2"></textarea></div>
+      <div class="form-group"><label>Price (Â£)</label><input type="number" id="modal-price" step="0.01" min="0"></div>
+      <div class="form-group"><label>Allergens (comma-separated)</label><input type="text" id="modal-allergens" placeholder="Gluten, Dairy"></div>
+      <div class="form-group"><label><input type="checkbox" id="modal-vegan" style="width:auto;margin-right:6px"> Vegan</label></div>
+      <div class="form-group"><label><input type="checkbox" id="modal-active" checked style="width:auto;margin-right:6px"> Active (visible)</label></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeMenuModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveMenuItem()">Save</button>
+      <button class="btn btn-outline" onclick="closeMenuModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="saveMenu()">Save Item</button>
     </div>
   </div>
 </div>
 
+<div id="toast"></div>
+
 <script>
-// ── Navigation ──
-const sectionMap = {orders:'sec-orders',menu:'sec-menu',settings:'sec-settings'};
-const titleMap   = {orders:'Orders',menu:'Menu Editor',settings:'Settings'};
-function showSection(name, el) {
-  Object.values(sectionMap).forEach(id => document.getElementById(id).classList.remove('active'));
-  document.getElementById(sectionMap[name]).classList.add('active');
-  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('pageTitle').textContent = titleMap[name];
-  if (name === 'orders') loadOrders();
-}
+const WEEKLY_DATA = {{ weekly_data|safe }};
+const TOP_DISHES  = {{ top_dishes|safe }};
 
-// ── Orders ──
-let allOrders = [];
-let currentFilter = 'all';
+const TABS = ['orders','bookings','menu','analytics','settings'];
+const TITLES = {orders:'Orders',bookings:'Bookings',menu:'Menu Editor',analytics:'Analytics',settings:'Settings'};
 
-function loadOrders() {
-  const info = document.getElementById('orders-refresh-info');
-  if (info) info.textContent = 'Loading...';
-  fetch('/admin/api/orders')
-    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(data => {
-      allOrders = data;
-      renderOrders();
-      const now = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      if (info) info.textContent = 'Updated ' + now + ' · ' + data.length + ' order' + (data.length===1?'':'s');
-    })
-    .catch(err => {
-      console.error('loadOrders error', err);
-      const tbody = document.getElementById('ordersBody');
-      if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:#c0392b">&#9888; Could not load orders (' + err.message + '). <a href="#" onclick="loadOrders();return false" style="color:var(--red)">Retry</a></td></tr>';
-      if (info) info.textContent = 'Load failed';
-    });
-}
-
-function filterOrders(status, el) {
-  currentFilter = status;
-  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  renderOrders();
-}
-
-function renderOrders() {
-  const tbody = document.getElementById('ordersBody');
-  const rows  = currentFilter === 'all' ? allOrders : allOrders.filter(o=>o.status===currentFilter);
-  tbody.innerHTML = '';
-  rows.forEach(o => {
-    const itemSummary = o.items.map(it=>`${it.qty||1}× ${it.name}`).join(', ');
-    const short = itemSummary.length > 40 ? itemSummary.slice(0,40)+'…' : itemSummary;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><a href="/order/status?id=${o.id}" target="_blank" style="color:var(--red);font-weight:700">${o.id}</a></td>
-      <td>${o.order_type}</td>
-      <td>
-        <strong>${esc(o.name)}</strong><br>
-        <small style="color:#888">${esc(o.phone)}</small>
-        ${o.address ? `<br><small style="color:#aaa">${esc(o.address)}, ${esc(o.postcode)}</small>` : ''}
-      </td>
-      <td title="${esc(itemSummary)}" style="font-size:.8rem;color:#666">${esc(short)}</td>
-      <td><strong>£${o.total.toFixed(2)}</strong></td>
-      <td>
-        <span class="badge ${o.payment_status==='paid'?'badge-ready':'badge-preparing'}">
-          ${o.payment_method} / ${o.payment_status}
-        </span>
-      </td>
-      <td>
-        <select class="status-sel" onchange="updateStatus('${o.id}',this.value)">
-          ${['received','preparing','ready','completed','cancelled'].map(s=>
-            `<option value="${s}" ${s===o.status?'selected':''}>${cap(s)}</option>`).join('')}
-        </select>
-      </td>
-      <td style="font-size:.75rem;color:#aaa">${fmtDate(o.created_at)}</td>
-      <td>
-        ${o.notes ? `<span title="${esc(o.notes)}" style="cursor:help;color:#888">📝</span>` : ''}
-      </td>`;
-    tbody.appendChild(tr);
+function showTab(name) {
+  TABS.forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===name);
   });
-  if (!rows.length) {
-    const msg = allOrders.length ? 'No orders match this filter.' : '&#128203; No orders yet. Orders placed on the website appear here automatically.';
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2.5rem;color:#aaa">' + msg + '</td></tr>';
-  }
+  document.querySelectorAll('.nav-item').forEach((el,i) => {
+    el.classList.toggle('active', TABS[i]===name);
+  });
+  document.getElementById('topbar-title').textContent = TITLES[name]||name;
+  if(name==='analytics') initCharts();
 }
 
-function updateStatus(oid, status) {
-  fetch(`/admin/api/order/${oid}/status`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({status})
-  }).then(r=>r.json()).then(d=>{
-    if (!d.success) alert('Failed to update status');
-    else {
-      const o = allOrders.find(x=>x.id===oid);
-      if (o) o.status = status;
+function toast(msg,type='ok') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show '+type;
+  clearTimeout(t._t); t._t=setTimeout(()=>{t.className=''},3000);
+}
+
+let _filter='all',_search='';
+function setFilter(val,btn) {
+  _filter=val;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilter();
+}
+function filterOrders(q) { _search=q.toLowerCase(); applyFilter(); }
+function applyFilter() {
+  document.querySelectorAll('.order-row').forEach(tr => {
+    const ok=(_filter==='all'||tr.dataset.status===_filter)&&(!_search||(tr.dataset.search||'').includes(_search));
+    tr.style.display=ok?'':'none';
+    const nx=tr.nextElementSibling;
+    if(nx&&nx.querySelector('.order-items-list')) nx.style.display=ok?'':'none';
+  });
+}
+
+function toggleItems(id) {
+  const el=document.getElementById(id)?.querySelector('.order-items-list');
+  if(el) el.classList.toggle('open');
+}
+
+async function updateOrderStatus(oid,status) {
+  const r=await fetch(`/admin/api/order/${oid}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+  const d=await r.json();
+  if(d.success) { const row=document.querySelector(`[data-search*="${oid.toLowerCase()}"]`); if(row)row.dataset.status=status; toast(`#${oid} â ${status}`); }
+  else toast(d.error||'Error','err');
+}
+
+async function updateBooking(bid,status) {
+  const r=await fetch(`/admin/api/booking/${bid}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+  const d=await r.json();
+  if(d.success){toast(`Booking #${bid} ${status}`);location.reload();}
+  else toast(d.error||'Error','err');
+}
+
+function openMenuModal() {
+  document.getElementById('modal-title').textContent='Add Menu Item';
+  ['modal-id','modal-name','modal-desc','modal-price','modal-allergens'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('modal-cat').selectedIndex=0;
+  document.getElementById('modal-vegan').checked=false;
+  document.getElementById('modal-active').checked=true;
+  document.getElementById('menu-modal').classList.add('open');
+}
+function editMenu(item) {
+  document.getElementById('modal-title').textContent='Edit Menu Item';
+  document.getElementById('modal-id').value=item.id;
+  const cat=document.getElementById('modal-cat');
+  for(let i=0;i<cat.options.length;i++) if(cat.options[i].value===item.category){cat.selectedIndex=i;break;}
+  document.getElementById('modal-name').value=item.name;
+  document.getElementById('modal-desc').value=item.description||'';
+  document.getElementById('modal-price').value=item.price;
+  document.getElementById('modal-allergens').value=Array.isArray(item.allergens)?item.allergens.join(', '):'';
+  document.getElementById('modal-vegan').checked=!!item.vegan;
+  document.getElementById('modal-active').checked=item.active==1;
+  document.getElementById('menu-modal').classList.add('open');
+}
+function closeMenuModal(){document.getElementById('menu-modal').classList.remove('open')}
+async function saveMenu() {
+  const id=document.getElementById('modal-id').value;
+  const data={category:document.getElementById('modal-cat').value,name:document.getElementById('modal-name').value.trim(),description:document.getElementById('modal-desc').value.trim(),price:parseFloat(document.getElementById('modal-price').value),allergens:document.getElementById('modal-allergens').value,vegan:document.getElementById('modal-vegan').checked,active:document.getElementById('modal-active').checked};
+  if(!data.name||!data.price){toast('Name and price required','err');return;}
+  const r=await fetch(id?`/admin/api/menu/${id}`:'/admin/api/menu',{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const d=await r.json();
+  if(d.success){closeMenuModal();toast('Saved');location.reload();}else toast(d.error||'Error','err');
+}
+async function deleteMenu(id) {
+  if(!confirm('Hide this item?'))return;
+  const r=await fetch(`/admin/api/menu/${id}`,{method:'DELETE'});
+  const d=await r.json();
+  if(d.success){toast('Hidden');location.reload();}else toast(d.error||'Error','err');
+}
+
+async function changePassword() {
+  const c=document.getElementById('pw-current').value,n=document.getElementById('pw-new').value,k=document.getElementById('pw-confirm').value;
+  if(n!==k){toast('Passwords do not match','err');return;}
+  const r=await fetch('/admin/api/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current:c,new:n})});
+  const d=await r.json();
+  if(d.success)toast('Password updated');else toast(d.error||'Error','err');
+}
+
+let _chartsInit=false;
+function initCharts(){
+  if(_chartsInit)return; _chartsInit=true;
+  const labels=WEEKLY_DATA.map(d=>d.day.slice(5));
+  const revenue=WEEKLY_DATA.map(d=>d.revenue);
+  const orders=WEEKLY_DATA.map(d=>d.orders);
+  const dlabels=TOP_DISHES.map(d=>d[0]);
+  const dcounts=TOP_DISHES.map(d=>d[1]);
+  const colors=['#c9973a','#3b82f6','#22c55e','#f59e0b','#a855f7','#ef4444','#06b6d4','#ec4899'];
+  const gridColor='rgba(255,255,255,.06)';
+  const tickColor='#94a3b8';
+  new Chart(document.getElementById('revenueChart'),{type:'bar',data:{labels,datasets:[{label:'Â£',data:revenue,backgroundColor:'rgba(201,151,58,.7)',borderColor:'#c9973a',borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tickColor},grid:{color:gridColor}},y:{ticks:{color:tickColor,callback:v=>'Â£'+v},grid:{color:gridColor}}}}});
+  new Chart(document.getElementById('dishChart'),{type:'doughnut',data:{labels:dlabels,datasets:[{data:dcounts,backgroundColor:colors}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:tickColor,boxWidth:12,font:{size:11}}}}}});
+  new Chart(document.getElementById('orderCountChart'),{type:'line',data:{labels,datasets:[{label:'Orders',data:orders,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',fill:true,tension:.4,pointBackgroundColor:'#3b82f6'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tickColor},grid:{color:gridColor}},y:{ticks:{color:tickColor},grid:{color:gridColor},min:0}}}});
+}
+
+// New order polling
+let _last=new Date().toISOString(),_nc=0;
+async function checkNew(){
+  try{
+    const r=await fetch(`/admin/api/orders/new-count?since=${encodeURIComponent(_last)}`);
+    const d=await r.json();
+    if(d.count>0){
+      _nc+=d.count;
+      const cnt=document.getElementById('notif-count');
+      const bell=document.getElementById('notif-bell');
+      const banner=document.getElementById('notif-banner');
+      const sbp=document.getElementById('sb-pending');
+      cnt.textContent=_nc; cnt.style.display='flex';
+      bell.classList.add('ringing'); setTimeout(()=>bell.classList.remove('ringing'),1500);
+      banner.style.display='block';
+      banner.textContent=`ð ${_nc} new order${_nc>1?'s':''} received! Click Orders tab to view.`;
+      sbp.textContent=_nc; sbp.style.display='inline';
+      try{const ctx=new(window.AudioContext||window.webkitAudioContext)(),o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.value=.3;o.start();o.stop(ctx.currentTime+.25);}catch(e){}
     }
-  });
+    _last=new Date().toISOString();
+  }catch(e){}
 }
+setInterval(checkNew,20000);
+checkNew();
 
-// ── Menu ──
-function openAddModal() {
-  document.getElementById('modalTitle').textContent = 'Add Menu Item';
-  document.getElementById('editId').value = '';
-  document.getElementById('mCat').value = '';
-  document.getElementById('mName').value = '';
-  document.getElementById('mDesc').value = '';
-  document.getElementById('mPrice').value = '';
-  document.getElementById('mAllergens').value = '';
-  document.getElementById('mVegan').checked = false;
-  document.getElementById('mActive').checked = true;
-  document.getElementById('activeRow').style.display = 'none';
-  document.getElementById('menuModal').classList.add('show');
+// Auto-refresh order statuses
+async function refreshStatuses(){
+  if(!document.getElementById('tab-orders').classList.contains('active'))return;
+  try{
+    const r=await fetch('/admin/api/orders');
+    const orders=await r.json();
+    const pending=orders.filter(o=>o.status==='received').length;
+    document.getElementById('s-pending').textContent=pending;
+  }catch(e){}
 }
-
-function editItem(item) {
-  document.getElementById('modalTitle').textContent = 'Edit Menu Item';
-  document.getElementById('editId').value = item.id;
-  document.getElementById('mCat').value   = item.category;
-  document.getElementById('mName').value  = item.name;
-  document.getElementById('mDesc').value  = item.description;
-  document.getElementById('mPrice').value = item.price;
-  document.getElementById('mAllergens').value = Array.isArray(item.allergens) ? item.allergens.join(', ') : '';
-  document.getElementById('mVegan').checked  = !!item.vegan;
-  document.getElementById('mActive').checked = !!item.active;
-  document.getElementById('activeRow').style.display = '';
-  document.getElementById('menuModal').classList.add('show');
-}
-
-function closeMenuModal() {
-  document.getElementById('menuModal').classList.remove('show');
-}
-
-function saveMenuItem() {
-  const eid  = document.getElementById('editId').value;
-  const data = {
-    category:    document.getElementById('mCat').value.trim(),
-    name:        document.getElementById('mName').value.trim(),
-    description: document.getElementById('mDesc').value.trim(),
-    price:       document.getElementById('mPrice').value,
-    allergens:   document.getElementById('mAllergens').value,
-    vegan:       document.getElementById('mVegan').checked,
-    active:      document.getElementById('mActive').checked,
-  };
-  if (!data.category || !data.name || !data.price) { alert('Category, name and price are required.'); return; }
-  const url    = eid ? `/admin/api/menu/${eid}` : '/admin/api/menu';
-  const method = eid ? 'PUT' : 'POST';
-  fetch(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)})
-    .then(r=>r.json())
-    .then(d => {
-      if (d.success) { closeMenuModal(); location.reload(); }
-      else alert('Error: ' + (d.error || 'unknown'));
-    });
-}
-
-function deleteItem(id, name) {
-  if (!confirm(`Hide "${name}" from the menu?`)) return;
-  fetch(`/admin/api/menu/${id}`, {method:'DELETE'})
-    .then(r=>r.json())
-    .then(d => { if (d.success) location.reload(); else alert('Error'); });
-}
-
-// ── Settings ──
-function changePassword() {
-  const cur  = document.getElementById('cpCurrent').value;
-  const nw   = document.getElementById('cpNew').value;
-  const conf = document.getElementById('cpConfirm').value;
-  const msg  = document.getElementById('cpMsg');
-  if (nw !== conf) { showMsg(msg,'Passwords do not match','err'); return; }
-  fetch('/admin/api/change-password',{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({current:cur,new:nw})
-  }).then(r=>r.json()).then(d=>{
-    if (d.success) { showMsg(msg,'Password updated successfully','ok');
-      document.getElementById('cpCurrent').value='';
-      document.getElementById('cpNew').value='';
-      document.getElementById('cpConfirm').value='';
-    } else showMsg(msg, d.error || 'Error','err');
-  });
-}
-function showMsg(el,txt,cls){el.textContent=txt;el.className='msg-box '+cls;setTimeout(()=>el.className='msg-box',4000)}
-
-// ── Utilities ──
-function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML }
-function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1) }
-function fmtDate(s){
-  try { return new Date(s).toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
-  catch{ return s; }
-}
-
-// Auto-refresh orders every 30s
-loadOrders();
-setInterval(() => {
-  if (document.getElementById('sec-orders').classList.contains('active')) loadOrders();
-}, 30000);
+setInterval(refreshStatuses,30000);
 </script>
 </body>
 </html>
