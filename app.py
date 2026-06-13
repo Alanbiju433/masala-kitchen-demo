@@ -1,11 +1,15 @@
-import os, json, sqlite3, random, string
+import os, json, random, string
 from functools import wraps
 from flask import (Flask, render_template, request, jsonify,
                    session, redirect, url_for, g)
 from openai import OpenAI
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# ── Stripe (optional – set env vars to enable) ─────────────────────────────────
+# ââ PostgreSQL via psycopg2 âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+import psycopg2
+import psycopg2.extras
+
+# ââ Stripe (optional) âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 try:
     import stripe as _stripe
     _STRIPE_SECRET = os.environ.get('STRIPE_SECRET_KEY', '')
@@ -18,11 +22,10 @@ except ImportError:
     STRIPE_ON  = False
     STRIPE_PUB = ''
 
-# ── App ────────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'masala-kitchen-dev-key-change-in-prod')
 
-DB = os.path.join(os.path.dirname(__file__), 'masala.db')
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 _openai_client = None
 
 def get_openai_client():
@@ -34,13 +37,20 @@ def get_openai_client():
 with open('data/restaurant.json') as f:
     RESTAURANT = json.load(f)
 
-# ── Database helpers ──────────────────────────────────────────────────────────
+# ââ Promo codes (server-side only) âââââââââââââââââââââââââââââââââââââââââââââ
+PROMOS = {
+    'WELCOME10': {'type': 'pct',   'value': 10,  'label': '10% off for new customers'},
+    'SPICE20':   {'type': 'pct',   'value': 20,  'label': '20% off spice lovers'},
+    'HALAL15':   {'type': 'pct',   'value': 15,  'label': '15% halal loyalty discount'},
+    'STUDENT10': {'type': 'pct',   'value': 10,  'label': '10% student discount', 'requires_id': True},
+    'FLAT5':     {'type': 'fixed', 'value': 5.0, 'label': 'Â£5 off your order'},
+}
+
+# ââ DB helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 def get_db():
     db = getattr(g, '_db', None)
     if db is None:
-        db = g._db = sqlite3.connect(DB)
-        db.row_factory = sqlite3.Row
-        db.execute('PRAGMA journal_mode=WAL')
+        db = g._db = psycopg2.connect(DATABASE_URL)
     return db
 
 @app.teardown_appcontext
@@ -49,66 +59,97 @@ def close_db(exc):
     if db:
         db.close()
 
+def db_execute(sql, params=(), fetch='none'):
+    conn = get_db()
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(sql, params)
+        if fetch == 'one':
+            result = cur.fetchone()
+        elif fetch == 'all':
+            result = cur.fetchall()
+        else:
+            result = None
+        conn.commit()
+    return result
+
 def init_db():
     with app.app_context():
-        db = get_db()
-        db.executescript('''
-            CREATE TABLE IF NOT EXISTS admin_users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS orders (
-                id TEXT PRIMARY KEY,
-                order_type TEXT NOT NULL,
-                name TEXT NOT NULL,
-                phone TEXT NOT NULL,
-                email TEXT DEFAULT '',
-                address TEXT DEFAULT '',
-                postcode TEXT DEFAULT '',
-                items TEXT NOT NULL,
-                total REAL NOT NULL,
-                notes TEXT DEFAULT '',
-                payment_method TEXT DEFAULT 'cash',
-                payment_status TEXT DEFAULT 'pending',
-                stripe_pi TEXT DEFAULT '',
-                status TEXT DEFAULT 'received',
-                created_at TEXT DEFAULT (datetime('now','localtime')),
-                updated_at TEXT DEFAULT (datetime('now','localtime'))
-            );
-            CREATE TABLE IF NOT EXISTS menu_items (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                category TEXT NOT NULL,
-                name TEXT NOT NULL,
-                description TEXT DEFAULT '',
-                price REAL NOT NULL,
-                vegan INTEGER DEFAULT 0,
-                allergens TEXT DEFAULT '[]',
-                active INTEGER DEFAULT 1,
-                sort_order INTEGER DEFAULT 0
-            );
-        ''')
-        # Default admin
-        if not db.execute('SELECT 1 FROM admin_users LIMIT 1').fetchone():
-            db.execute('INSERT INTO admin_users (username,password_hash) VALUES (?,?)',
-                       ('admin', generate_password_hash('admin123')))
-        # Seed menu from JSON once
-        if not db.execute('SELECT 1 FROM menu_items LIMIT 1').fetchone():
-            s = 0
-            for cat, items in RESTAURANT['menu'].items():
-                for it in items:
-                    db.execute('''INSERT INTO menu_items
-                        (category,name,description,price,vegan,allergens,sort_order)
-                        VALUES(?,?,?,?,?,?,?)''',
-                        (cat, it['name'], it.get('description',''), it['price'],
-                         1 if it.get('vegan') else 0,
-                         json.dumps(it.get('allergens',[])), s))
-                    s += 1
-        db.commit()
+        conn = get_db()
+        with conn.cursor() as cur:
+            cur.execute('''
+                CREATE TABLE IF NOT EXISTS admin_users (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS orders (
+                    id TEXT PRIMARY KEY,
+                    order_type TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    phone TEXT NOT NULL,
+                    email TEXT DEFAULT '',
+                    address TEXT DEFAULT '',
+                    postcode TEXT DEFAULT '',
+                    items TEXT NOT NULL,
+                    subtotal REAL DEFAULT 0,
+                    discount REAL DEFAULT 0,
+                    total REAL NOT NULL,
+                    promo_code TEXT DEFAULT '',
+                    notes TEXT DEFAULT '',
+                    payment_method TEXT DEFAULT 'cash',
+                    payment_status TEXT DEFAULT 'pending',
+                    stripe_pi TEXT DEFAULT '',
+                    status TEXT DEFAULT 'received',
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    updated_at TIMESTAMP DEFAULT NOW()
+                );
+                CREATE TABLE IF NOT EXISTS bookings (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    phone TEXT NOT NULL,
+                    email TEXT DEFAULT '',
+                    date TEXT NOT NULL,
+                    time TEXT NOT NULL,
+                    guests INTEGER NOT NULL,
+                    notes TEXT DEFAULT '',
+                    status TEXT DEFAULT 'pending',
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
+                CREATE TABLE IF NOT EXISTS menu_items (
+                    id SERIAL PRIMARY KEY,
+                    category TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    description TEXT DEFAULT '',
+                    price REAL NOT NULL,
+                    vegan INTEGER DEFAULT 0,
+                    allergens TEXT DEFAULT '[]',
+                    active INTEGER DEFAULT 1,
+                    sort_order INTEGER DEFAULT 0
+                );
+            ''')
+            # Default admin
+            cur.execute('SELECT 1 FROM admin_users LIMIT 1')
+            if not cur.fetchone():
+                cur.execute('INSERT INTO admin_users (username,password_hash) VALUES (%s,%s)',
+                           ('admin', generate_password_hash('admin123')))
+            # Seed menu
+            cur.execute('SELECT 1 FROM menu_items LIMIT 1')
+            if not cur.fetchone():
+                s = 0
+                for cat, items in RESTAURANT['menu'].items():
+                    for it in items:
+                        cur.execute('''INSERT INTO menu_items
+                            (category,name,description,price,vegan,allergens,sort_order)
+                            VALUES(%s,%s,%s,%s,%s,%s,%s)''',
+                            (cat, it['name'], it.get('description',''), it['price'],
+                             1 if it.get('vegan') else 0,
+                             json.dumps(it.get('allergens',[])), s))
+                        s += 1
+        conn.commit()
 
 init_db()
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ââ Helpers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 def short_id():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
@@ -121,10 +162,7 @@ def admin_required(f):
     return deco
 
 def menu_from_db():
-    db = get_db()
-    rows = db.execute(
-        'SELECT * FROM menu_items WHERE active=1 ORDER BY category,sort_order,id'
-    ).fetchall()
+    rows = db_execute('SELECT * FROM menu_items WHERE active=1 ORDER BY category,sort_order,id', fetch='all')
     cats = {}
     for r in rows:
         cat = r['category']
@@ -136,7 +174,6 @@ def menu_from_db():
         })
     return cats
 
-# ── AI system prompt ───────────────────────────────────────────────────────────
 def build_system_prompt():
     r = RESTAURANT
     menu_text = ''
@@ -145,43 +182,38 @@ def build_system_prompt():
         for it in items:
             v = ' [VEGAN]' if it.get('vegan') else ''
             a = f" (allergens: {', '.join(it['allergens'])})" if it.get('allergens') else ''
-            menu_text += f"  - {it['name']} - {it['price']:.2f}: {it['description']}{v}{a}\n"
+            menu_text += f"  - {it['name']} - Â£{it['price']:.2f}: {it['description']}{v}{a}\n"
     hours = '\n'.join(f'  {d}: {t}' for d, t in r['hours'].items())
     deals = '\n'.join(f"  - {d['name']}: {d['description']} ({d['valid']})" for d in r['deals'])
-    bi    = r.get('booking_info', {})
-    faqs  = r.get('faqs', [])
-    faq_text = '\n'.join(f"  Q: {f['q']}\n  A: {f['a']}" for f in faqs) if faqs else '  (none)'
-    return f'''You are the friendly AI assistant for {r['name']} - "{r['tagline']}".
+    promo_text = '\n'.join(f"  {k}: {v['label']}" for k,v in PROMOS.items())
+    bi = r.get('booking_info', {})
+    return f'''You are the friendly AI assistant for {r["name"]} - "{r["tagline"]}".
 Help customers with menu questions, allergen info, bookings, deals, hours. Be concise.
 
 == RESTAURANT ==
-{r['name']} | {r['address']} | {r['phone']} | {r['email']}
-Services: {', '.join(r['services'])}
+{r["name"]} | {r["address"]} | {r["phone"]} | {r["email"]}
 
 == HOURS ==
 {hours}
 
-== DEALS ==
+== DEALS & PROMOS ==
 {deals}
+Promo codes: {promo_text}
 
 == MENU ==
 {menu_text}
 
 == BOOKING ==
-Advance: up to {bi.get('max_advance','30 days')}
-Groups 8+: {bi.get('large_groups','call directly')}
-
-== FAQs ==
-{faq_text}
+Advance: up to {bi.get("max_advance","30 days")}. Groups 8+: {bi.get("large_groups","call directly")}
 
 == RULES ==
 Only help with Masala Kitchen questions. Never invent prices/dishes.
-Always mention allergens when asked. Direct complaints to {r['phone']} or {r['email']}.
+Always mention allergens when asked. Direct complaints to {r["phone"]} or {r["email"]}.
 '''
 
 SYSTEM_PROMPT = build_system_prompt()
 
-# ── Public routes ──────────────────────────────────────────────────────────────
+# ââ Public routes ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/')
 def index():
     restaurant = dict(RESTAURANT)
@@ -195,8 +227,7 @@ def order_status_page():
 
 @app.route('/api/order/<oid>')
 def api_get_order(oid):
-    db  = get_db()
-    row = db.execute('SELECT * FROM orders WHERE id=?', (oid.upper(),)).fetchone()
+    row = db_execute('SELECT * FROM orders WHERE id=%s', (oid.upper(),), fetch='one')
     if not row:
         return jsonify({'error': 'Order not found'}), 404
     return jsonify({
@@ -205,7 +236,29 @@ def api_get_order(oid):
         'items': json.loads(row['items']),
         'payment_method': row['payment_method'],
         'payment_status': row['payment_status'],
-        'created_at': row['created_at'],
+        'created_at': str(row['created_at']),
+    })
+
+@app.route('/apply-promo', methods=['POST'])
+def apply_promo():
+    """Server-side promo validation â never expose codes to client."""
+    data     = request.get_json()
+    code     = (data.get('code','') or '').strip().upper()
+    subtotal = float(data.get('subtotal', 0))
+    promo    = PROMOS.get(code)
+    if not promo:
+        return jsonify({'valid': False, 'message': 'Invalid promo code'})
+    if promo['type'] == 'pct':
+        discount = round(subtotal * promo['value'] / 100, 2)
+    else:
+        discount = min(promo['value'], subtotal)
+    return jsonify({
+        'valid':          True,
+        'code':           code,
+        'label':          promo['label'],
+        'discount':       discount,
+        'total':          round(subtotal - discount, 2),
+        'requires_id':    promo.get('requires_id', False),
     })
 
 @app.route('/order', methods=['POST'])
@@ -215,26 +268,46 @@ def place_order():
     phone = data.get('phone','').strip()
     if not name or not phone:
         return jsonify({'error': 'Name and phone required'}), 400
+
+    # Re-validate promo server-side
+    code     = (data.get('promo_code','') or '').strip().upper()
+    subtotal = float(data.get('subtotal', data.get('total', 0)))
+    discount = 0.0
+    promo    = PROMOS.get(code)
+    if promo:
+        if promo['type'] == 'pct':
+            discount = round(subtotal * promo['value'] / 100, 2)
+        else:
+            discount = min(promo['value'], subtotal)
+    total = round(subtotal - discount, 2)
+
     oid = short_id()
-    db  = get_db()
-    db.execute('''INSERT INTO orders
+    db_execute('''INSERT INTO orders
         (id,order_type,name,phone,email,address,postcode,
-         items,total,notes,payment_method)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?)''', (
+         items,subtotal,discount,total,promo_code,notes,payment_method)
+        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''', (
         oid, data.get('order_type','Dine-in'), name, phone,
         data.get('email',''), data.get('address',''), data.get('postcode',''),
-        json.dumps(data.get('items',[])), float(data.get('total',0)),
-        data.get('notes',''), data.get('payment_method','cash'),
+        json.dumps(data.get('items',[])), subtotal, discount, total,
+        code, data.get('notes',''), data.get('payment_method','cash'),
     ))
-    db.commit()
-    print(f'=== NEW ORDER {oid} | {data.get("order_type")} | {name} | {data.get("total")} ===')
+    print(f'=== NEW ORDER {oid} | {data.get("order_type")} | {name} | Â£{total} ===')
     return jsonify({'success': True, 'order_id': oid})
 
 @app.route('/book', methods=['POST'])
 def book():
     data = request.get_json()
-    print(f"=== BOOKING | {data.get('name')} | {data.get('phone')} | {data.get('date')} {data.get('time')} | {data.get('guests')} guests ===")
-    return jsonify({'success': True, 'message': 'Booking received'})
+    name  = data.get('name','').strip()
+    phone = data.get('phone','').strip()
+    if not name or not phone:
+        return jsonify({'error': 'Name and phone required'}), 400
+    db_execute('''INSERT INTO bookings (name,phone,email,date,time,guests,notes)
+                  VALUES(%s,%s,%s,%s,%s,%s,%s)''',
+               (name, phone, data.get('email',''),
+                data.get('date',''), data.get('time',''),
+                int(data.get('guests',2)), data.get('notes','')))
+    print(f"=== BOOKING | {name} | {phone} | {data.get('date')} {data.get('time')} | {data.get('guests')} guests ===")
+    return jsonify({'success': True, 'message': 'Booking received! We will confirm within 2 hours.'})
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -264,7 +337,7 @@ def reset():
     session.pop('history', None)
     return jsonify({'status': 'ok'})
 
-# ── Stripe ─────────────────────────────────────────────────────────────────────
+# ââ Stripe âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/stripe/create-intent', methods=['POST'])
 def create_intent():
     if not STRIPE_ON:
@@ -292,12 +365,10 @@ def stripe_webhook():
         return '', 400
     if event['type'] == 'payment_intent.succeeded':
         pi = event['data']['object']['id']
-        db = get_db()
-        db.execute("UPDATE orders SET payment_status='paid' WHERE stripe_pi=?", (pi,))
-        db.commit()
+        db_execute("UPDATE orders SET payment_status='paid' WHERE stripe_pi=%s", (pi,))
     return '', 200
 
-# ── Admin auth ─────────────────────────────────────────────────────────────────
+# ââ Admin auth âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/admin/login', methods=['GET','POST'])
 def admin_login():
     if session.get('admin_id'):
@@ -306,8 +377,7 @@ def admin_login():
     if request.method == 'POST':
         username = request.form.get('username','').strip()
         password = request.form.get('password','')
-        db   = get_db()
-        user = db.execute('SELECT * FROM admin_users WHERE username=?',(username,)).fetchone()
+        user = db_execute('SELECT * FROM admin_users WHERE username=%s', (username,), fetch='one')
         if user and check_password_hash(user['password_hash'], password):
             session['admin_id']       = user['id']
             session['admin_username'] = user['username']
@@ -321,48 +391,95 @@ def admin_logout():
     session.pop('admin_username', None)
     return redirect(url_for('admin_login'))
 
-# ── Admin dashboard ────────────────────────────────────────────────────────────
+# ââ Admin dashboard ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/admin')
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    db     = get_db()
-    orders = db.execute('SELECT * FROM orders ORDER BY created_at DESC LIMIT 200').fetchall()
+    orders = db_execute('SELECT * FROM orders ORDER BY created_at DESC LIMIT 200', fetch='all')
     order_list = []
     for o in orders:
         od = dict(o)
         od['items'] = json.loads(od['items'])
+        od['created_at'] = str(od['created_at'])
+        od['updated_at'] = str(od['updated_at'])
         order_list.append(od)
-    menu_rows = db.execute('SELECT * FROM menu_items ORDER BY category,sort_order,id').fetchall()
+
+    bookings = db_execute('SELECT * FROM bookings ORDER BY date DESC, time DESC LIMIT 100', fetch='all')
+    booking_list = [dict(b) for b in bookings]
+    for b in booking_list:
+        b['created_at'] = str(b['created_at'])
+
+    menu_rows = db_execute('SELECT * FROM menu_items ORDER BY category,sort_order,id', fetch='all')
     menu_list = []
     for m in menu_rows:
         md = dict(m)
         md['allergens'] = json.loads(md['allergens'])
         menu_list.append(md)
+
     categories = list(dict.fromkeys(m['category'] for m in menu_list))
+
     stats = {
-        'total_orders':  db.execute('SELECT COUNT(*) FROM orders').fetchone()[0],
-        'today_orders':  db.execute("SELECT COUNT(*) FROM orders WHERE date(created_at)=date('now','localtime')").fetchone()[0],
-        'today_revenue': db.execute("SELECT COALESCE(SUM(total),0) FROM orders WHERE date(created_at)=date('now','localtime')").fetchone()[0],
-        'pending':       db.execute("SELECT COUNT(*) FROM orders WHERE status='received'").fetchone()[0],
+        'total_orders':  db_execute('SELECT COUNT(*) as c FROM orders', fetch='one')['c'],
+        'today_orders':  db_execute("SELECT COUNT(*) as c FROM orders WHERE DATE(created_at)=CURRENT_DATE", fetch='one')['c'],
+        'today_revenue': db_execute("SELECT COALESCE(SUM(total),0) as s FROM orders WHERE DATE(created_at)=CURRENT_DATE", fetch='one')['s'],
+        'pending':       db_execute("SELECT COUNT(*) as c FROM orders WHERE status='received'", fetch='one')['c'],
+        'total_bookings': db_execute("SELECT COUNT(*) as c FROM bookings", fetch='one')['c'],
+        'upcoming_bookings': db_execute("SELECT COUNT(*) as c FROM bookings WHERE date >= CURRENT_DATE AND status != 'cancelled'", fetch='one')['c'],
     }
+
+    # Analytics: last 7 days revenue
+    weekly = db_execute('''
+        SELECT DATE(created_at) as day, COUNT(*) as orders, COALESCE(SUM(total),0) as revenue
+        FROM orders WHERE created_at >= NOW() - INTERVAL '7 days'
+        GROUP BY DATE(created_at) ORDER BY day
+    ''', fetch='all')
+    weekly_data = [{'day': str(r['day']), 'orders': r['orders'], 'revenue': float(r['revenue'])} for r in (weekly or [])]
+
+    # Top dishes
+    top_dishes_raw = db_execute('SELECT items FROM orders LIMIT 200', fetch='all')
+    dish_counts = {}
+    for row in (top_dishes_raw or []):
+        for item in json.loads(row['items']):
+            n = item.get('name','Unknown')
+            dish_counts[n] = dish_counts.get(n, 0) + item.get('qty', 1)
+    top_dishes = sorted(dish_counts.items(), key=lambda x: x[1], reverse=True)[:8]
+
     return render_template('admin.html',
-                           orders=order_list, menu_items=menu_list,
-                           categories=categories, stats=stats,
+                           orders=order_list,
+                           bookings=booking_list,
+                           menu_items=menu_list,
+                           categories=categories,
+                           stats=stats,
+                           weekly_data=json.dumps(weekly_data),
+                           top_dishes=json.dumps(top_dishes),
                            username=session.get('admin_username','admin'))
 
-# ── Admin API ──────────────────────────────────────────────────────────────────
+# ââ Admin API ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/admin/api/orders')
 @admin_required
 def admin_api_orders():
-    db   = get_db()
-    rows = db.execute('SELECT * FROM orders ORDER BY created_at DESC LIMIT 200').fetchall()
+    rows = db_execute('SELECT * FROM orders ORDER BY created_at DESC LIMIT 200', fetch='all')
     result = []
     for r in rows:
         d = dict(r)
         d['items'] = json.loads(d['items'])
+        d['created_at'] = str(d['created_at'])
+        d['updated_at'] = str(d['updated_at'])
         result.append(d)
     return jsonify(result)
+
+@app.route('/admin/api/orders/new-count')
+@admin_required
+def admin_new_order_count():
+    """Polling endpoint for new order notifications."""
+    since = request.args.get('since', '')
+    if since:
+        count = db_execute("SELECT COUNT(*) as c FROM orders WHERE created_at > %s AND status='received'",
+                          (since,), fetch='one')['c']
+    else:
+        count = 0
+    return jsonify({'count': count})
 
 @app.route('/admin/api/order/<oid>/status', methods=['POST'])
 @admin_required
@@ -371,61 +488,70 @@ def admin_update_status(oid):
     valid  = ['received','preparing','ready','completed','cancelled']
     if status not in valid:
         return jsonify({'error': 'Invalid status'}), 400
-    db = get_db()
-    db.execute("UPDATE orders SET status=?,updated_at=datetime('now','localtime') WHERE id=?",
-               (status, oid))
-    db.commit()
+    db_execute("UPDATE orders SET status=%s, updated_at=NOW() WHERE id=%s", (status, oid))
+    return jsonify({'success': True})
+
+@app.route('/admin/api/bookings')
+@admin_required
+def admin_api_bookings():
+    rows = db_execute('SELECT * FROM bookings ORDER BY date DESC, time DESC', fetch='all')
+    result = [dict(r) for r in rows]
+    for r in result:
+        r['created_at'] = str(r['created_at'])
+    return jsonify(result)
+
+@app.route('/admin/api/booking/<int:bid>/status', methods=['POST'])
+@admin_required
+def admin_update_booking_status(bid):
+    status = request.get_json().get('status','')
+    valid  = ['pending','confirmed','cancelled']
+    if status not in valid:
+        return jsonify({'error': 'Invalid status'}), 400
+    db_execute("UPDATE bookings SET status=%s WHERE id=%s", (status, bid))
     return jsonify({'success': True})
 
 @app.route('/admin/api/menu', methods=['GET'])
 @admin_required
 def admin_menu_list():
-    db   = get_db()
-    rows = db.execute('SELECT * FROM menu_items ORDER BY category,sort_order,id').fetchall()
+    rows = db_execute('SELECT * FROM menu_items ORDER BY category,sort_order,id', fetch='all')
     return jsonify([dict(r) for r in rows])
 
 @app.route('/admin/api/menu', methods=['POST'])
 @admin_required
 def admin_menu_add():
     data = request.get_json()
-    db   = get_db()
     allergens = data.get('allergens','')
     if isinstance(allergens, list):
         allergens_json = json.dumps(allergens)
     else:
         allergens_json = json.dumps([a.strip() for a in allergens.split(',') if a.strip()])
-    db.execute('''INSERT INTO menu_items (category,name,description,price,vegan,allergens)
-                  VALUES(?,?,?,?,?,?)''',
+    db_execute('''INSERT INTO menu_items (category,name,description,price,vegan,allergens)
+                  VALUES(%s,%s,%s,%s,%s,%s)''',
                (data['category'], data['name'], data.get('description',''),
                 float(data['price']), 1 if data.get('vegan') else 0, allergens_json))
-    db.commit()
     return jsonify({'success': True})
 
 @app.route('/admin/api/menu/<int:mid>', methods=['PUT'])
 @admin_required
 def admin_menu_update(mid):
     data = request.get_json()
-    db   = get_db()
     allergens = data.get('allergens','')
     if isinstance(allergens, list):
         allergens_json = json.dumps(allergens)
     else:
         allergens_json = json.dumps([a.strip() for a in allergens.split(',') if a.strip()])
-    db.execute('''UPDATE menu_items
-                  SET category=?,name=?,description=?,price=?,vegan=?,allergens=?,active=?
-                  WHERE id=?''',
+    db_execute('''UPDATE menu_items
+                  SET category=%s,name=%s,description=%s,price=%s,vegan=%s,allergens=%s,active=%s
+                  WHERE id=%s''',
                (data['category'], data['name'], data.get('description',''),
                 float(data['price']), 1 if data.get('vegan') else 0,
                 allergens_json, 1 if data.get('active', True) else 0, mid))
-    db.commit()
     return jsonify({'success': True})
 
 @app.route('/admin/api/menu/<int:mid>', methods=['DELETE'])
 @admin_required
 def admin_menu_delete(mid):
-    db = get_db()
-    db.execute('UPDATE menu_items SET active=0 WHERE id=?', (mid,))
-    db.commit()
+    db_execute('UPDATE menu_items SET active=0 WHERE id=%s', (mid,))
     return jsonify({'success': True})
 
 @app.route('/admin/api/change-password', methods=['POST'])
@@ -436,13 +562,11 @@ def change_password():
     new_pw  = data.get('new','')
     if len(new_pw) < 6:
         return jsonify({'error': 'Password must be at least 6 characters'}), 400
-    db   = get_db()
-    user = db.execute('SELECT * FROM admin_users WHERE id=?',(session['admin_id'],)).fetchone()
+    user = db_execute('SELECT * FROM admin_users WHERE id=%s', (session['admin_id'],), fetch='one')
     if not check_password_hash(user['password_hash'], current):
         return jsonify({'error': 'Current password is incorrect'}), 400
-    db.execute('UPDATE admin_users SET password_hash=? WHERE id=?',
+    db_execute('UPDATE admin_users SET password_hash=%s WHERE id=%s',
                (generate_password_hash(new_pw), session['admin_id']))
-    db.commit()
     return jsonify({'success': True})
 
 if __name__ == '__main__':
