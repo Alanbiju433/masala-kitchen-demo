@@ -425,7 +425,7 @@ def admin_dashboard():
         'today_revenue': db_execute("SELECT COALESCE(SUM(total),0) as s FROM orders WHERE DATE(created_at)=CURRENT_DATE", fetch='one')['s'],
         'pending':       db_execute("SELECT COUNT(*) as c FROM orders WHERE status='received'", fetch='one')['c'],
         'total_bookings': db_execute("SELECT COUNT(*) as c FROM bookings", fetch='one')['c'],
-        'upcoming_bookings': db_execute("SELECT COUNT(*) as c FROM bookings WHERE date >= CURRENT_DATE AND status != 'cancelled'", fetch='one')['c'],
+        'upcoming_bookings': db_execute("SELECT COUNT(*) as c FROM bookings WHERE date::date >= CURRENT_DATE AND status != 'cancelled'", fetch='one')['c'],
     }
 
     # Analytics: last 7 days revenue
