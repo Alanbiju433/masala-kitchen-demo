@@ -137,7 +137,7 @@ def init_db():
                     name TEXT NOT NULL,
                     description TEXT DEFAULT '',
                     price REAL NOT NULL,
-     0              vegan INTEGER DEFAULT 0,
+                    vegan INTEGER DEFAULT 0,
                     allergens TEXT DEFAULT '[]',
                     active INTEGER DEFAULT 1,
                     sort_order INTEGER DEFAULT 0
@@ -232,7 +232,7 @@ Always mention allergens when asked. Direct complaints to {r["phone"]} or {r["em
 
 SYSTEM_PROMPT = build_system_prompt()
 
-# ── Customer auth ──────────────────────────────────────────────────────────────
+# ── Customer auth ─────────��────────────────────────────────────────────────────
 @app.route('/customer/register', methods=['POST'])
 def customer_register():
     data  = request.get_json()
@@ -284,7 +284,7 @@ def customer_orders():
     result = []
     for r in rows:
         d = dict(r)
-        d['items_list'] = json.loads(d['items'])
+        d['items_list'] = json.loads(do['items'])
         d['created_at'] = str(d['created_at'])
         result.append(d)
     return jsonify(result)
