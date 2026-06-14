@@ -1243,7 +1243,7 @@ async function submitAuth() {
   try {
     const res = await fetch(url, {method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const d = await res.json();
-    if (d.ok) {
+    if (d.success) {
       custName  = d.name || email;
       custEmail = d.email || email;
       updateAccountUI();
