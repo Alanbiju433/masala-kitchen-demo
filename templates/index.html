@@ -312,6 +312,10 @@ footer{background:#07101A;padding:22px 0}
         <span class="cart-badge" id="cart-count">0</span>
       </button>
       <button class="btn-gold" onclick="openCart()">Order Now</button>
+      <button id="acct-btn" onclick="openAuthModal()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 16px;border-radius:8px;font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.18)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span id="acct-label">Sign In</span>
+      </button>
     </div>
   </nav>
 </header>
@@ -831,68 +835,37 @@ function setPayMethod(btn, method) {
   }
 }
 
-/* PROMO CODES */
-const PROMO_CODES = {
-  'WELCOME10': { type:'percent', value:10, label:'10% Welcome discount' },
-  'SPICE20':   { type:'percent', value:20, label:'20% Spice Lover discount' },
-  'FLAT5':     { type:'fixed',   value:5,  label:'5 off' },
-  'HALAL15':   { type:'percent', value:15, label:'15% Halal discount' },
-  'STUDENT10': { type:'percent', value:10, label:'10% Student discount', requiresId:true },
-};
+/* PROMO CODES - validated server-side only */
 let activePromo = null;
-let autoPromoApplied = false;
 
-/* --- Auto-apply helpers --- */
-function cartHasMainDish() {
-  const mains = ['main','chicken','lamb','seafood','vegetarian','biryani','curry'];
-  return cart.some(i => mains.some(k => (i.cat||'').toLowerCase().includes(k) || (i.name||'').toLowerCase().includes(k)));
-}
-function isFirstVisit() {
-  try { return !localStorage.getItem('mk_visited'); } catch(e) { return false; }
-}
-function markVisited() {
-  try { localStorage.setItem('mk_visited','1'); } catch(e) {}
-}
-function autoApplyBestDiscount() {
-  if (activePromo && !autoPromoApplied) return; // manual code wins
-  let code;
-  if (cartHasMainDish())  code = 'SPICE20';
-  else if (isFirstVisit()) code = 'WELCOME10';
-  else                     code = 'HALAL15';
-  activePromo = { code, ...PROMO_CODES[code] };
-  autoPromoApplied = true;
-  const banner = document.getElementById('auto-promo-banner');
-  const txt    = document.getElementById('auto-promo-text');
-  if (banner && txt) {
-    const saving = activePromo.type === 'percent' ? activePromo.value + '% off' : '£' + activePromo.value + ' off';
-    txt.textContent = activePromo.label + ' auto-applied — ' + saving + '!';
-    banner.style.display = 'flex';
-  }
-  updateCheckoutTotal();
-}
-function removeAutoPromo() {
-  activePromo = null; autoPromoApplied = false;
-  document.getElementById('auto-promo-banner').style.display = 'none';
-  updateCheckoutTotal();
-}
-function onPromoInput(val) {
-  const sid = document.getElementById('student-id-wrap');
-  if (sid) sid.style.display = (val.trim().toUpperCase() === 'STUDENT10') ? 'block' : 'none';
-}
-
-function applyPromo() {
+async function applyPromo() {
   const code = (document.getElementById('co-promo').value || '').trim().toUpperCase();
-  if (!code) { showPromoMsg('Enter a promo code.', 'red'); return; }
-  if (!PROMO_CODES[code]) { showPromoMsg('Invalid promo code.', 'red'); return; }
-  if (PROMO_CODES[code].requiresId) {
-    const sid = (document.getElementById('student-id') || {}).value || '';
-    if (!sid.trim()) { showPromoMsg('Please enter your student ID.', 'red'); return; }
+  if (!code) { showPromoMsg('Enter a promo code first.', 'red'); return; }
+  showPromoMsg('Checking…', '#888');
+  try {
+    const res = await fetch('/apply-promo', {
+      method: 'POST', credentials: 'include',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({code})
+    });
+    const d = await res.json();
+    if (d.require_login) {
+      showPromoMsg('Please sign in to use promo codes.', 'red');
+      openAuthModal();
+      return;
+    }
+    if (d.valid) {
+      activePromo = { code, type: d.type, value: d.value, label: d.label };
+      showPromoMsg('✓ ' + d.label + ' applied!', 'green');
+      updateCheckoutTotal();
+    } else {
+      activePromo = null;
+      showPromoMsg(d.message || 'Invalid promo code.', 'red');
+      updateCheckoutTotal();
+    }
+  } catch(e) {
+    showPromoMsg('Error checking promo. Try again.', 'red');
   }
-  activePromo = { code, ...PROMO_CODES[code] };
-  autoPromoApplied = false;
-  document.getElementById('auto-promo-banner').style.display = 'none';
-  showPromoMsg('✓ ' + activePromo.label + ' applied!', 'green');
-  updateCheckoutTotal();
 }
 function showPromoMsg(txt, color) {
   const el = document.getElementById('promo-msg');
@@ -1170,5 +1143,141 @@ window.addEventListener('scroll', () => {
 });
 </script>
 {% endraw %}
+
+<!-- AUTH MODAL -->
+<div id="auth-ov" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:36px 32px;width:min(420px,92vw);position:relative;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+    <button onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;background:none;font-size:1.4rem;color:#666;line-height:1">&#215;</button>
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="width:48px;height:48px;background:#0D1B2A;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <h3 id="auth-title" style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#0D1B2A">Sign In</h3>
+      <p id="auth-sub" style="font-size:.85rem;color:#888;margin-top:4px">Sign in to use promo codes and track your orders</p>
+    </div>
+    <div id="auth-err" style="display:none;background:#fff0f0;border:1px solid #ffcdd2;color:#c62828;border-radius:8px;padding:10px 14px;font-size:.84rem;margin-bottom:16px"></div>
+    <input id="auth-name" type="text" placeholder="Your name" style="display:none;width:100%;padding:11px 14px;border:1px solid #ddd;border-radius:8px;font-size:.93rem;margin-bottom:10px">
+    <input id="auth-email" type="email" placeholder="Email address" style="width:100%;padding:11px 14px;border:1px solid #ddd;border-radius:8px;font-size:.93rem;margin-bottom:10px">
+    <input id="auth-pass" type="password" placeholder="Password" style="width:100%;padding:11px 14px;border:1px solid #ddd;border-radius:8px;font-size:.93rem;margin-bottom:16px">
+    <button id="auth-submit" onclick="submitAuth()" style="width:100%;background:#0D1B2A;color:#fff;padding:13px;border-radius:8px;font-weight:600;font-size:.95rem">Sign In</button>
+    <p style="text-align:center;margin-top:14px;font-size:.84rem;color:#666">
+      <span id="auth-toggle-txt">Don't have an account?</span>
+      <a href="#" id="auth-toggle-lnk" onclick="toggleAuthMode(event)" style="color:#C9963E;font-weight:600;margin-left:4px">Create one</a>
+    </p>
+    <div id="auth-logged-in" style="display:none;text-align:center">
+      <p style="font-size:.95rem;color:#333;margin-bottom:16px">Signed in as <strong id="auth-logged-name"></strong></p>
+      <button onclick="doLogout()" style="background:#c0392b;color:#fff;padding:10px 24px;border-radius:8px;font-weight:600;font-size:.88rem">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let authMode = 'login'; // or 'register'
+let custName = '', custEmail = '';
+
+function openAuthModal() {
+  const ov = document.getElementById('auth-ov');
+  ov.style.display = 'flex';
+  document.getElementById('auth-err').style.display = 'none';
+  // Check if already logged in
+  if (custName) {
+    showLoggedInState();
+  } else {
+    showLoginForm();
+  }
+}
+function closeAuthModal() {
+  document.getElementById('auth-ov').style.display = 'none';
+}
+function showLoginForm() {
+  authMode = 'login';
+  document.getElementById('auth-title').textContent = 'Sign In';
+  document.getElementById('auth-sub').textContent = 'Sign in to use promo codes and track your orders';
+  document.getElementById('auth-name').style.display = 'none';
+  document.getElementById('auth-email').style.display = 'block';
+  document.getElementById('auth-pass').style.display = 'block';
+  document.getElementById('auth-submit').style.display = 'block';
+  document.getElementById('auth-submit').textContent = 'Sign In';
+  document.getElementById('auth-toggle-txt').textContent = "Don't have an account?";
+  document.getElementById('auth-toggle-lnk').textContent = 'Create one';
+  document.getElementById('auth-logged-in').style.display = 'none';
+}
+function showRegisterForm() {
+  authMode = 'register';
+  document.getElementById('auth-title').textContent = 'Create Account';
+  document.getElementById('auth-sub').textContent = 'Join to unlock promo codes and order history';
+  document.getElementById('auth-name').style.display = 'block';
+  document.getElementById('auth-email').style.display = 'block';
+  document.getElementById('auth-pass').style.display = 'block';
+  document.getElementById('auth-submit').style.display = 'block';
+  document.getElementById('auth-submit').textContent = 'Create Account';
+  document.getElementById('auth-toggle-txt').textContent = 'Already have an account?';
+  document.getElementById('auth-toggle-lnk').textContent = 'Sign in';
+  document.getElementById('auth-logged-in').style.display = 'none';
+}
+function showLoggedInState() {
+  document.getElementById('auth-title').textContent = 'My Account';
+  document.getElementById('auth-sub').textContent = '';
+  document.getElementById('auth-name').style.display = 'none';
+  document.getElementById('auth-email').style.display = 'none';
+  document.getElementById('auth-pass').style.display = 'none';
+  document.getElementById('auth-submit').style.display = 'none';
+  document.getElementById('auth-toggle-txt').textContent = '';
+  document.getElementById('auth-toggle-lnk').textContent = '';
+  document.getElementById('auth-logged-name').textContent = custEmail;
+  document.getElementById('auth-logged-in').style.display = 'block';
+}
+function toggleAuthMode(e) {
+  e.preventDefault();
+  document.getElementById('auth-err').style.display = 'none';
+  if (authMode === 'login') showRegisterForm(); else showLoginForm();
+}
+async function submitAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  const name  = document.getElementById('auth-name').value.trim();
+  const errEl = document.getElementById('auth-err');
+  if (!email || !pass) { errEl.textContent='Email and password required'; errEl.style.display='block'; return; }
+  const url = authMode === 'register' ? '/customer/register' : '/customer/login';
+  const body = authMode === 'register' ? {email,password:pass,name} : {email,password:pass};
+  try {
+    const res = await fetch(url, {method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d = await res.json();
+    if (d.ok) {
+      custName  = d.name || email;
+      custEmail = d.email || email;
+      updateAccountUI();
+      closeAuthModal();
+    } else {
+      errEl.textContent = d.error || 'Something went wrong';
+      errEl.style.display = 'block';
+    }
+  } catch(e) { errEl.textContent='Network error. Try again.'; errEl.style.display='block'; }
+}
+async function doLogout() {
+  await fetch('/customer/logout', {method:'POST',credentials:'include'});
+  custName = ''; custEmail = '';
+  activePromo = null;
+  updateCheckoutTotal();
+  updateAccountUI();
+  closeAuthModal();
+}
+function updateAccountUI() {
+  const lbl = document.getElementById('acct-label');
+  if (lbl) lbl.textContent = custName ? custName.split(' ')[0] : 'Sign In';
+}
+// On page load: check if already signed in
+(async function checkSession() {
+  try {
+    const res = await fetch('/customer/me', {credentials:'include'});
+    const d = await res.json();
+    if (d.logged_in) {
+      custName  = d.name || d.email;
+      custEmail = d.email;
+      updateAccountUI();
+    }
+  } catch(e) {}
+})();
+</script>
 </body>
 </html>
