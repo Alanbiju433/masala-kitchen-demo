@@ -284,7 +284,7 @@ def customer_orders():
     result = []
     for r in rows:
         d = dict(r)
-        d['items_list'] = json.loads(do['items'])
+        d['items_list'] = json.loads(d['items'])
         d['created_at'] = str(d['created_at'])
         result.append(d)
     return jsonify(result)
