@@ -196,7 +196,7 @@ textarea{resize:vertical;min-height:80px}
               {% if o.address %}<div style="color:var(--muted);font-size:.72rem">{{ o.address }}{% if o.postcode %}, {{ o.postcode }}{% endif %}</div>{% endif %}
             </td>
             <td><span class="badge badge-received" style="font-size:.68rem">{{ o.order_type }}</span></td>
-            <td><button class="expand-btn" onclick="toggleItems('items-{{ o.id }}')">{{ o.items|length }} item(s) â¼</button></td>
+            <td><button class="expand-btn" onclick="toggleItems('items-{{ o.id }}')">{{ o.order_items|length }} item(s) â¼</button></td>
             <td>
               <div style="font-weight:700">Â£{{ "%.2f"|format(o.total) }}</div>
               {% if o.discount and o.discount > 0 %}<div style="color:var(--green);font-size:.72rem">-Â£{{ "%.2f"|format(o.discount) }} ({{ o.promo_code }})</div>{% endif %}
@@ -212,8 +212,7 @@ textarea{resize:vertical;min-height:80px}
           </tr>
           <tr id="items-{{ o.id }}"><td colspan="8" style="padding:0">
             <div class="order-items-list">
-              {% for item in o.items %}
-              <div class="order-item-row">
+              {% for{% for item in o.order_items %}         <div class="order-item-row">
                 <span>{{ item.qty }}x {{ item.name }}{% if item.spice %} [{{ item.spice }}]{% endif %}{% if item.portion %} ({{ item.portion }}){% endif %}</span>
                 <span>Â£{{ "%.2f"|format(item.price * item.qty) }}</span>
               </div>
