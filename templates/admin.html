@@ -212,7 +212,7 @@ textarea{resize:vertical;min-height:80px}
           </tr>
           <tr id="items-{{ o.id }}"><td colspan="8" style="padding:0">
             <div class="order-items-list">
-              {% for{% for item in o.order_items %}         <div class="order-item-row">
+              {% for item in o.order_items %}         <div class="order-item-row">
                 <span>{{ item.qty }}x {{ item.name }}{% if item.spice %} [{{ item.spice }}]{% endif %}{% if item.portion %} ({{ item.portion }}){% endif %}</span>
                 <span>Â£{{ "%.2f"|format(item.price * item.qty) }}</span>
               </div>
