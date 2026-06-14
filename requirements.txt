@@ -2,3 +2,5 @@ flask
 openai
 stripe
 gunicorn
+psycopg2-binary
+werkzeug
