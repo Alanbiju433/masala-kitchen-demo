@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Masala Kitchen â Admin</title>
+<title>Masala Kitchen — Admin</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{--navy:#0f1a2e;--navy2:#162236;--gold:#c9973a;--gold2:#e8b44a;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;--text:#e2e8f0;--muted:#94a3b8;--card:#1e2d47;--border:#2a3f60;--sidebar:220px}
@@ -140,31 +140,31 @@ textarea{resize:vertical;min-height:80px}
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 <aside id="sidebar">
   <div class="sb-logo">
-    <h1>ð Masala Kitchen</h1>
+    <h1>🍛 Masala Kitchen</h1>
     <p>Admin Panel</p>
   </div>
   <nav>
     <div class="nav-item active" onclick="showTab('orders')">
-      <span>ð</span> Orders
+      <span>📋</span> Orders
       <span class="nav-badge" id="sb-pending"></span>
     </div>
     <div class="nav-item" onclick="showTab('bookings')">
-      <span>ð</span> Bookings
+      <span>📅</span> Bookings
     </div>
     <div class="nav-item" onclick="showTab('customers')">
-      <span>ð¥</span> Customers
+      <span>👥</span> Customers
     </div>
     <div class="nav-item" onclick="showTab('promos')">
-      <span>ðï¸</span> Promo Codes
+      <span>🎟️</span> Promo Codes
     </div>
     <div class="nav-item" onclick="showTab('menu')">
-      <span>ð½ï¸</span> Menu Editor
+      <span>🍽️</span> Menu Editor
     </div>
     <div class="nav-item" onclick="showTab('analytics')">
-      <span>ð</span> Analytics
+      <span>📊</span> Analytics
     </div>
     <div class="nav-item" onclick="showTab('settings')">
-      <span>âï¸</span> Settings
+      <span>⚙️</span> Settings
     </div>
   </nav>
   <div class="sb-footer">
@@ -172,19 +172,19 @@ textarea{resize:vertical;min-height:80px}
       <strong>{{ username }}</strong>
       Administrator
     </div>
-    <a href="/admin/logout" class="logout-btn">ðª Sign out</a>
+    <a href="/admin/logout" class="logout-btn">🚪 Sign out</a>
   </div>
 </aside>
 
 <div id="main">
   <div class="topbar">
-    <button id="ham-btn" onclick="toggleSidebar()" title="Menu">â°</button>
+    <button id="ham-btn" onclick="toggleSidebar()" title="Menu">☰</button>
     <h2 id="topbar-title">Orders</h2>
     <div class="topbar-actions">
-      <button id="notif-perm-btn" onclick="requestNotifPerm()" title="Enable browser notifications">ð Notify</button>
-      <button id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark">âï¸</button>
+      <button id="notif-perm-btn" onclick="requestNotifPerm()" title="Enable browser notifications">🔔 Notify</button>
+      <button id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark">☀️</button>
       <button id="notif-bell" title="New orders" onclick="showTab('orders')">
-        ð<span id="notif-count"></span>
+        🔔<span id="notif-count"></span>
       </button>
     </div>
   </div>
@@ -206,7 +206,7 @@ textarea{resize:vertical;min-height:80px}
         </div>
         <div class="stat-card green">
           <div class="stat-label">Today's Revenue</div>
-          <div class="stat-value">Â£{{ "%.2f"|format(stats.today_revenue) }}</div>
+          <div class="stat-value">£{{ "%.2f"|format(stats.today_revenue) }}</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">All Time Orders</div>
@@ -216,7 +216,7 @@ textarea{resize:vertical;min-height:80px}
 
       <div class="section-header">
         <h3>Live Orders</h3>
-        <input class="search-input" placeholder="Search name, ID, phoneâ¦" oninput="filterOrders(this.value)">
+        <input class="search-input" placeholder="Search name, ID, phone…" oninput="filterOrders(this.value)">
       </div>
       <div class="filter-bar">
         <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
@@ -243,10 +243,10 @@ textarea{resize:vertical;min-height:80px}
               {% if o.address %}<div style="color:var(--muted);font-size:.72rem">{{ o.address }}{% if o.postcode %}, {{ o.postcode }}{% endif %}</div>{% endif %}
             </td>
             <td><span class="badge badge-received" style="font-size:.68rem">{{ o.order_type }}</span></td>
-            <td><button class="expand-btn" onclick="toggleItems('items-{{ o.id }}')">{{ o.order_items|length }} item(s) â¼</button></td>
+            <td><button class="expand-btn" onclick="toggleItems('items-{{ o.id }}')">{{ o.order_items|length }} item(s) ▼</button></td>
             <td>
-              <div style="font-weight:700">Â£{{ "%.2f"|format(o.total) }}</div>
-              {% if o.discount and o.discount > 0 %}<div style="color:var(--green);font-size:.72rem">-Â£{{ "%.2f"|format(o.discount) }} ({{ o.promo_code }})</div>{% endif %}
+              <div style="font-weight:700">£{{ "%.2f"|format(o.total) }}</div>
+              {% if o.discount and o.discount > 0 %}<div style="color:var(--green);font-size:.72rem">-£{{ "%.2f"|format(o.discount) }} ({{ o.promo_code }})</div>{% endif %}
             </td>
             <td><span class="badge badge-{{ o.payment_status }}">{{ o.payment_method }}</span></td>
             <td>
@@ -257,7 +257,7 @@ textarea{resize:vertical;min-height:80px}
               </div>
             </td>
             <td>
-              <button class="btn btn-outline btn-sm" onclick='printReceipt({{ o|tojson }})' title="Print receipt">ð¨ï¸</button>
+              <button class="btn btn-outline btn-sm" onclick='printReceipt({{ o|tojson }})' title="Print receipt">🖨️</button>
             </td>
           </tr>
           <tr id="items-{{ o.id }}"><td colspan="9" style="padding:0">
@@ -265,10 +265,10 @@ textarea{resize:vertical;min-height:80px}
               {% for item in o.order_items %}
               <div class="order-item-row">
                 <span>{{ item.qty }}x {{ item.name }}{% if item.spice %} [{{ item.spice }}]{% endif %}{% if item.portion %} ({{ item.portion }}){% endif %}</span>
-                <span>Â£{{ "%.2f"|format(item.price * item.qty) }}</span>
+                <span>£{{ "%.2f"|format(item.price * item.qty) }}</span>
               </div>
               {% endfor %}
-              {% if o.notes %}<div style="font-size:.78rem;color:var(--amber);margin-top:6px">ð {{ o.notes }}</div>{% endif %}
+              {% if o.notes %}<div style="font-size:.78rem;color:var(--amber);margin-top:6px">📝 {{ o.notes }}</div>{% endif %}
             </div>
           </td></tr>
           {% else %}
@@ -303,11 +303,11 @@ textarea{resize:vertical;min-height:80px}
             <td><div style="font-weight:600">{{ b.date }}</div><div style="color:var(--muted);font-size:.78rem">{{ b.time }}</div></td>
             <td><div style="font-weight:600">{{ b.name }}</div><div style="color:var(--muted);font-size:.75rem">{{ b.phone }}</div>{% if b.email %}<div style="color:var(--muted);font-size:.72rem">{{ b.email }}</div>{% endif %}</td>
             <td style="font-weight:700;font-size:1.1rem">{{ b.guests }}</td>
-            <td style="color:var(--muted);font-size:.8rem;max-width:180px">{{ b.notes or 'â' }}</td>
+            <td style="color:var(--muted);font-size:.8rem;max-width:180px">{{ b.notes or '—' }}</td>
             <td><span class="badge badge-{{ b.status }}">{{ b.status|capitalize }}</span></td>
             <td><div class="action-btns">
-              <button class="btn btn-green btn-sm" onclick="updateBooking({{ b.id }},'confirmed')">â Confirm</button>
-              <button class="btn btn-red btn-sm" onclick="updateBooking({{ b.id }},'cancelled')">â Cancel</button>
+              <button class="btn btn-green btn-sm" onclick="updateBooking({{ b.id }},'confirmed')">✓ Confirm</button>
+              <button class="btn btn-red btn-sm" onclick="updateBooking({{ b.id }},'cancelled')">✕ Cancel</button>
             </div></td>
           </tr>
           {% else %}
@@ -321,19 +321,19 @@ textarea{resize:vertical;min-height:80px}
     <!-- CUSTOMERS TAB -->
     <div id="tab-customers" class="tab-panel">
       <div class="stats-grid" id="cust-stats">
-        <div class="stat-card blue"><div class="stat-label">Total Registered</div><div class="stat-value" id="cs-total">â</div></div>
-        <div class="stat-card green"><div class="stat-label">Have Ordered</div><div class="stat-value" id="cs-active">â</div></div>
-        <div class="stat-card amber"><div class="stat-label">Customer Revenue</div><div class="stat-value" id="cs-revenue">â</div></div>
-        <div class="stat-card purple"><div class="stat-label">Avg Spend</div><div class="stat-value" id="cs-avg">â</div></div>
+        <div class="stat-card blue"><div class="stat-label">Total Registered</div><div class="stat-value" id="cs-total">—</div></div>
+        <div class="stat-card green"><div class="stat-label">Have Ordered</div><div class="stat-value" id="cs-active">—</div></div>
+        <div class="stat-card amber"><div class="stat-label">Customer Revenue</div><div class="stat-value" id="cs-revenue">—</div></div>
+        <div class="stat-card purple"><div class="stat-label">Avg Spend</div><div class="stat-value" id="cs-avg">—</div></div>
       </div>
       <div class="section-header">
         <h3>Customer Accounts</h3>
-        <input class="search-input" placeholder="Search name or emailâ¦" oninput="filterCustomers(this.value)">
+        <input class="search-input" placeholder="Search name or email…" oninput="filterCustomers(this.value)">
       </div>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Orders</th><th>Total Spend</th><th>Avg Order</th><th>Joined</th></tr></thead>
-          <tbody id="cust-tbody"><tr><td colspan="7" class="loading">Loadingâ¦</td></tr></tbody>
+          <tbody id="cust-tbody"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -347,7 +347,7 @@ textarea{resize:vertical;min-height:80px}
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Single-Use</th><th>Used</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="promos-tbody"><tr><td colspan="7" class="loading">Loadingâ¦</td></tr></tbody>
+          <tbody id="promos-tbody"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -367,15 +367,15 @@ textarea{resize:vertical;min-height:80px}
             <td style="color:var(--gold);font-size:.78rem;font-weight:600">{{ item.category }}</td>
             <td style="font-weight:600">{{ item.name }}</td>
             <td style="color:var(--muted);font-size:.78rem;max-width:200px">{{ item.description }}</td>
-            <td style="font-weight:700">Â£{{ "%.2f"|format(item.price) }}</td>
+            <td style="font-weight:700">£{{ "%.2f"|format(item.price) }}</td>
             <td>
-              {% if item.vegan %}<span class="badge" style="background:rgba(34,197,94,.15);color:#86efac">ð±</span>{% endif %}
+              {% if item.vegan %}<span class="badge" style="background:rgba(34,197,94,.15);color:#86efac">🌱</span>{% endif %}
               {% for a in item.allergens %}<span class="badge badge-pending" style="margin:2px;font-size:.62rem">{{ a }}</span>{% endfor %}
             </td>
             <td><span class="badge {% if item.active %}badge-completed{% else %}badge-cancelled{% endif %}">{% if item.active %}Active{% else %}Hidden{% endif %}</span></td>
             <td><div class="action-btns">
-              <button class="btn btn-outline btn-sm" onclick='editMenu({{ item|tojson }})'>âï¸ Edit</button>
-              <button class="btn btn-red btn-sm" onclick="deleteMenu({{ item.id }})">ðï¸</button>
+              <button class="btn btn-outline btn-sm" onclick='editMenu({{ item|tojson }})'>✏️ Edit</button>
+              <button class="btn btn-red btn-sm" onclick="deleteMenu({{ item.id }})">🗑️</button>
             </div></td>
           </tr>
           {% endfor %}
@@ -389,19 +389,19 @@ textarea{resize:vertical;min-height:80px}
       <div class="stats-grid">
         <div class="stat-card green">
           <div class="stat-label">Total Revenue</div>
-          <div class="stat-value" id="a-revenue">â</div>
+          <div class="stat-value" id="a-revenue">—</div>
         </div>
         <div class="stat-card blue">
           <div class="stat-label">Avg Order Value</div>
-          <div class="stat-value" id="a-avg">â</div>
+          <div class="stat-value" id="a-avg">—</div>
         </div>
         <div class="stat-card amber">
           <div class="stat-label">Busiest Hour</div>
-          <div class="stat-value" id="a-hour">â</div>
+          <div class="stat-value" id="a-hour">—</div>
         </div>
         <div class="stat-card purple">
           <div class="stat-label">Promo Uses (7d)</div>
-          <div class="stat-value" id="a-promos">â</div>
+          <div class="stat-value" id="a-promos">—</div>
         </div>
       </div>
       <div class="section-header">
@@ -410,7 +410,7 @@ textarea{resize:vertical;min-height:80px}
       </div>
       <div class="charts-row">
         <div class="chart-card">
-          <h3>Daily Revenue (Â£)</h3>
+          <h3>Daily Revenue (£)</h3>
           <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
         </div>
         <div class="chart-card">
@@ -450,9 +450,9 @@ textarea{resize:vertical;min-height:80px}
         <div style="margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px">
           <h3 style="margin-bottom:12px">System Info</h3>
           <div style="font-size:.82rem;color:var(--muted);line-height:1.8">
-            <div>Database: PostgreSQL (persistent â no data loss on deploy)</div>
+            <div>Database: PostgreSQL (persistent — no data loss on deploy)</div>
             <div>Admin login: /admin/login</div>
-            <div style="color:var(--amber);margin-top:8px">â ï¸ Change the default password immediately</div>
+            <div style="color:var(--amber);margin-top:8px">⚠️ Change the default password immediately</div>
           </div>
         </div>
       </div>
@@ -475,7 +475,7 @@ textarea{resize:vertical;min-height:80px}
       </div>
       <div class="form-group"><label>Name</label><input type="text" id="modal-name" placeholder="e.g. Chicken Tikka"></div>
       <div class="form-group" style="grid-column:1/-1"><label>Description</label><textarea id="modal-desc" rows="2"></textarea></div>
-      <div class="form-group"><label>Price (Â£)</label><input type="number" id="modal-price" step="0.01" min="0"></div>
+      <div class="form-group"><label>Price (£)</label><input type="number" id="modal-price" step="0.01" min="0"></div>
       <div class="form-group"><label>Allergens (comma-separated)</label><input type="text" id="modal-allergens" placeholder="Gluten, Dairy"></div>
       <div class="form-group"><label><input type="checkbox" id="modal-vegan" style="width:auto;margin-right:6px"> Vegan</label></div>
       <div class="form-group"><label><input type="checkbox" id="modal-active" checked style="width:auto;margin-right:6px"> Active (visible)</label></div>
@@ -496,7 +496,7 @@ textarea{resize:vertical;min-height:80px}
       <div class="form-group"><label>Type</label>
         <select id="promo-type">
           <option value="percent">Percentage off (%)</option>
-          <option value="flat">Fixed amount off (Â£)</option>
+          <option value="flat">Fixed amount off (£)</option>
         </select>
       </div>
       <div class="form-group"><label>Value</label><input type="number" id="promo-value" step="0.01" min="0" placeholder="e.g. 15 for 15%"></div>
@@ -521,21 +521,21 @@ const TITLES = {orders:'Orders',bookings:'Bookings',customers:'Customers',promos
 let _filter='all', _search='', _custData=[], _chartsInit=false, _hourlyInit=false;
 let _prevNewCount = 0;
 
-// ââ Theme ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Theme ──────────────────────────────────────────────────────────────────────
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.dataset.theme === 'dark';
   html.dataset.theme = isDark ? 'light' : 'dark';
-  document.getElementById('theme-btn').textContent = isDark ? 'ð' : 'âï¸';
+  document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
   localStorage.setItem('mk_theme', html.dataset.theme);
 }
 (function initTheme(){
   const t = localStorage.getItem('mk_theme') || 'dark';
   document.documentElement.dataset.theme = t;
-  document.getElementById('theme-btn').textContent = t === 'dark' ? 'âï¸' : 'ð';
+  document.getElementById('theme-btn').textContent = t === 'dark' ? '☀️' : '🌙';
 })();
 
-// ââ Sidebar (mobile) âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Sidebar (mobile) ───────────────────────────────────────────────────────────
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebar-overlay').classList.toggle('show');
@@ -545,13 +545,13 @@ function closeSidebar() {
   document.getElementById('sidebar-overlay').classList.remove('show');
 }
 
-// ââ Browser Notifications ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Browser Notifications ──────────────────────────────────────────────────────
 async function requestNotifPerm() {
   if (!('Notification' in window)) { toast('Browser does not support notifications','err'); return; }
-  if (Notification.permission === 'granted') { toast('Notifications already enabled â'); return; }
+  if (Notification.permission === 'granted') { toast('Notifications already enabled ✓'); return; }
   const p = await Notification.requestPermission();
-  if (p === 'granted') { toast('ð Browser notifications enabled!'); updateNotifBtn(); }
-  else { toast('Permission denied â enable in browser settings','err'); }
+  if (p === 'granted') { toast('🔔 Browser notifications enabled!'); updateNotifBtn(); }
+  else { toast('Permission denied — enable in browser settings','err'); }
 }
 function pushNotif(title, body) {
   if (Notification.permission === 'granted') {
@@ -563,12 +563,12 @@ function updateNotifBtn() {
   const b2 = document.getElementById('notif-settings-btn');
   if (Notification.permission === 'granted') {
     if (b) b.style.display = 'none';
-    if (b2) b2.textContent = 'â Notifications Enabled';
+    if (b2) b2.textContent = '✓ Notifications Enabled';
   }
 }
 updateNotifBtn();
 
-// ââ Tab navigation âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Tab navigation ─────────────────────────────────────────────────────────────
 function showTab(name) {
   TABS.forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('active', t===name);
@@ -583,7 +583,7 @@ function showTab(name) {
   if (name==='promos') loadPromos();
 }
 
-// ââ Toast ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Toast ──────────────────────────────────────────────────────────────────────
 function toast(msg,type='ok') {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -592,7 +592,7 @@ function toast(msg,type='ok') {
   el._t = setTimeout(()=>{ el.className=''; }, 3500);
 }
 
-// ââ Orders filter / search âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Orders filter / search ─────────────────────────────────────────────────────
 function setFilter(val,btn) {
   _filter = val;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
@@ -615,14 +615,14 @@ function toggleItems(id) {
   if (el) el.querySelector('.order-items-list').classList.toggle('open');
 }
 
-// ââ Order status update ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Order status update ────────────────────────────────────────────────────────
 async function updateOrderStatus(oid, status, btn) {
   const r = await fetch(`/admin/api/order/${oid}/status`, {
     method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status})
   });
   const d = await r.json();
   if (d.success) {
-    toast(`Order #${oid} â ${status}`);
+    toast(`Order #${oid} → ${status}`);
     if (btn) {
       const row = btn.closest('tr');
       row.dataset.status = status;
@@ -636,14 +636,14 @@ async function updateBooking(bid,status) {
     method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})
   });
   const d = await r.json();
-  if (d.success) { toast(`Booking ${bid} â ${status}`); setTimeout(()=>location.reload(),1000); }
+  if (d.success) { toast(`Booking ${bid} → ${status}`); setTimeout(()=>location.reload(),1000); }
   else toast('Update failed','err');
 }
 
-// ââ Print Receipt ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Print Receipt ──────────────────────────────────────────────────────────────
 function printReceipt(o) {
   const items = (o.order_items||[]).map(i =>
-    `<tr><td>${i.qty}x ${i.name}${i.spice?' ['+i.spice+']':''}${i.portion?' ('+i.portion+')':''}</td><td style="text-align:right">Â£${(i.price*i.qty).toFixed(2)}</td></tr>`
+    `<tr><td>${i.qty}x ${i.name}${i.spice?' ['+i.spice+']':''}${i.portion?' ('+i.portion+')':''}</td><td style="text-align:right">£${(i.price*i.qty).toFixed(2)}</td></tr>`
   ).join('');
   const w = window.open('','_blank','width=400,height=600');
   w.document.write(`<!DOCTYPE html><html><head><title>Receipt #${o.id}</title>
@@ -653,15 +653,15 @@ function printReceipt(o) {
   .total{font-size:16px;font-weight:bold;border-top:1px solid #000;margin-top:8px;padding-top:8px}
   .footer{text-align:center;margin-top:16px;font-size:11px;color:#555}
   </style></head><body>
-  <h2>ð Masala Kitchen</h2>
+  <h2>🍛 Masala Kitchen</h2>
   <div style="text-align:center;font-size:12px;margin-bottom:12px">Order #${o.id} | ${(o.created_at||'').substring(0,16)}</div>
   <div style="margin-bottom:8px;font-size:12px">
     <strong>${o.name}</strong> | ${o.phone}<br>
     Type: ${o.order_type}${o.address?' | '+o.address:''}
   </div>
   <table>${items}</table>
-  ${o.discount>0?`<div style="font-size:12px;margin-top:6px">Promo ${o.promo_code}: -Â£${o.discount.toFixed(2)}</div>`:''}
-  <div class="total">Total: Â£${o.total.toFixed(2)} (${o.payment_method})</div>
+  ${o.discount>0?`<div style="font-size:12px;margin-top:6px">Promo ${o.promo_code}: -£${o.discount.toFixed(2)}</div>`:''}
+  <div class="total">Total: £${o.total.toFixed(2)} (${o.payment_method})</div>
   ${o.notes?`<div style="font-size:12px;margin-top:8px;color:#555">Note: ${o.notes}</div>`:''}
   <div class="footer">Thank you for your order!<br>masala-kitchen-demo.onrender.com</div>
   </body></html>`);
@@ -669,10 +669,10 @@ function printReceipt(o) {
   setTimeout(()=>w.print(),400);
 }
 
-// ââ Customers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Customers ──────────────────────────────────────────────────────────────────
 async function loadCustomers() {
   const tbody = document.getElementById('cust-tbody');
-  tbody.innerHTML = '<tr><td colspan="7" class="loading">Loadingâ¦</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
   try {
     const r = await fetch('/admin/api/customers');
     _custData = await r.json();
@@ -684,8 +684,8 @@ async function loadCustomers() {
     const avgSpend = active ? revenue/active : 0;
     document.getElementById('cs-total').textContent = total;
     document.getElementById('cs-active').textContent = active;
-    document.getElementById('cs-revenue').textContent = 'Â£'+revenue.toFixed(2);
-    document.getElementById('cs-avg').textContent = 'Â£'+avgSpend.toFixed(2);
+    document.getElementById('cs-revenue').textContent = '£'+revenue.toFixed(2);
+    document.getElementById('cs-avg').textContent = '£'+avgSpend.toFixed(2);
   } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Failed to load customers</td></tr>'; }
 }
 function renderCustomers(data) {
@@ -696,11 +696,11 @@ function renderCustomers(data) {
     const joined = (c.created_at||'').substring(0,10);
     return `<tr>
       <td style="color:var(--muted)">${i+1}</td>
-      <td style="font-weight:600">${c.name||'â'}</td>
+      <td style="font-weight:600">${c.name||'—'}</td>
       <td style="color:var(--muted);font-size:.8rem">${c.email}</td>
       <td><span style="font-weight:700">${c.order_count}</span></td>
-      <td style="font-weight:700">Â£${parseFloat(c.total_spend||0).toFixed(2)}</td>
-      <td style="color:var(--muted)">Â£${avg}</td>
+      <td style="font-weight:700">£${parseFloat(c.total_spend||0).toFixed(2)}</td>
+      <td style="color:var(--muted)">£${avg}</td>
       <td style="color:var(--muted);font-size:.78rem">${joined}</td>
     </tr>`;
   }).join('');
@@ -710,19 +710,19 @@ function filterCustomers(q) {
   renderCustomers(_custData.filter(c => (c.name||'').toLowerCase().includes(query) || c.email.toLowerCase().includes(query)));
 }
 
-// ââ Promos âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Promos ─────────────────────────────────────────────────────────────────────
 function openPromoModal() { document.getElementById('promo-modal').classList.add('open'); }
 function closePromoModal() { document.getElementById('promo-modal').classList.remove('open'); }
 
 async function loadPromos() {
   const tbody = document.getElementById('promos-tbody');
-  tbody.innerHTML = '<tr><td colspan="7" class="loading">Loadingâ¦</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
   try {
     const r = await fetch('/admin/api/promos');
     const data = await r.json();
     if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No promo codes yet</td></tr>'; return; }
     tbody.innerHTML = data.map(p => {
-      const val = p.type==='percent' ? `${p.value}%` : `Â£${parseFloat(p.value).toFixed(2)}`;
+      const val = p.type==='percent' ? `${p.value}%` : `£${parseFloat(p.value).toFixed(2)}`;
       const statusBadge = p.active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-inactive">Disabled</span>';
       return `<tr>
         <td style="font-weight:700;font-size:.9rem;letter-spacing:.05em">${p.code}</td>
@@ -735,7 +735,7 @@ async function loadPromos() {
           ${p.active
             ? `<button class="btn btn-outline btn-sm" onclick="togglePromo('${p.code}',false)">Disable</button>`
             : `<button class="btn btn-green btn-sm" onclick="togglePromo('${p.code}',true)">Enable</button>`}
-          <button class="btn btn-red btn-sm" onclick="deletePromo('${p.code}')">ðï¸</button>
+          <button class="btn btn-red btn-sm" onclick="deletePromo('${p.code}')">🗑️</button>
         </div></td>
       </tr>`;
     }).join('');
@@ -753,7 +753,7 @@ async function addPromo() {
     body: JSON.stringify({code,type,value,single_use:single})
   });
   const d = await r.json();
-  if (d.success) { toast(`â Promo ${code} created`); closePromoModal(); loadPromos(); }
+  if (d.success) { toast(`✓ Promo ${code} created`); closePromoModal(); loadPromos(); }
   else { toast(d.error||'Failed to create promo','err'); }
 }
 
@@ -774,7 +774,7 @@ async function deletePromo(code) {
   else toast('Failed','err');
 }
 
-// ââ Menu âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Menu ───────────────────────────────────────────────────────────────────────
 function openMenuModal() {
   document.getElementById('modal-title').textContent = 'Add Menu Item';
   document.getElementById('modal-id').value = '';
@@ -825,7 +825,7 @@ async function deleteMenu(id) {
   if (d.success) { toast('Item hidden'); setTimeout(()=>location.reload(),600); }
 }
 
-// ââ Password âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Password ───────────────────────────────────────────────────────────────────
 async function changePassword() {
   const cur = document.getElementById('pw-current').value;
   const nw  = document.getElementById('pw-new').value;
@@ -833,11 +833,11 @@ async function changePassword() {
   if (nw !== cf) { toast('Passwords do not match','err'); return; }
   const r = await fetch('/admin/api/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current:cur,new:nw})});
   const d = await r.json();
-  if (d.success) toast('Password updated â');
+  if (d.success) toast('Password updated ✓');
   else toast(d.error||'Failed','err');
 }
 
-// ââ Charts âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Charts ─────────────────────────────────────────────────────────────────────
 function initCharts() {
   if (_chartsInit) return;
   _chartsInit = true;
@@ -847,8 +847,8 @@ function initCharts() {
   const shortLabels = labels.map(d=>d.slice(5));
   const totalRev = rev.reduce((a,b)=>a+b,0);
   const totalOrders = cnt.reduce((a,b)=>a+b,0);
-  document.getElementById('a-revenue').textContent = 'Â£'+totalRev.toFixed(2);
-  document.getElementById('a-avg').textContent = totalOrders ? 'Â£'+(totalRev/totalOrders).toFixed(2) : 'â';
+  document.getElementById('a-revenue').textContent = '£'+totalRev.toFixed(2);
+  document.getElementById('a-avg').textContent = totalOrders ? '£'+(totalRev/totalOrders).toFixed(2) : '—';
   const cOpts = { responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false}},
     scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#94a3b8',font:{size:10}}},
@@ -876,7 +876,7 @@ async function loadHourlyChart() {
     const counts = hours.map(h=>data[String(h)]?.orders||0);
     let peakHour = 0, peakVal = 0;
     counts.forEach((v,i)=>{if(v>peakVal){peakVal=v;peakHour=i;}});
-    document.getElementById('a-hour').textContent = peakVal ? `${peakHour}:00` : 'â';
+    document.getElementById('a-hour').textContent = peakVal ? `${peakHour}:00` : '—';
     const cOpts2 = { responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false}},
       scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#94a3b8',font:{size:9}}},
@@ -886,10 +886,10 @@ async function loadHourlyChart() {
       data:{labels:hours.map(h=>h+':00'),datasets:[{data:counts,backgroundColor:counts.map((_,i)=>i===peakHour?'#c9973a':'rgba(59,130,246,.6)'),borderRadius:4}]},
       options:cOpts2
     });
-  } catch(e) { document.getElementById('a-hour').textContent='â'; }
+  } catch(e) { document.getElementById('a-hour').textContent='—'; }
 }
 
-// ââ New order polling ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── New order polling ──────────────────────────────────────────────────────────
 const orderSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA' +
   'EAAQAARKwAAIhYAQACABAAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbv4tROjBil8' +
   'TRuIJYPTxrm8PPuY9mRkBzn8bUsZJsUE6Bq9bfxJtxUk+EqNrhxqF3VlN9oM3nvJd2' +
@@ -912,9 +912,9 @@ async function checkNew(){
       document.getElementById('notif-bell').classList.add('ringing');
       if (cnt > _prevNewCount) {
         try { orderSound.currentTime=0; orderSound.play().catch(()=>{}); } catch(e){}
-        pushNotif('ð New Order!', `${cnt} order${cnt>1?'s':''} waiting â Masala Kitchen`);
+        pushNotif('🍛 New Order!', `${cnt} order${cnt>1?'s':''} waiting — Masala Kitchen`);
         const banner = document.getElementById('notif-banner');
-        banner.textContent = `ð ${cnt} new order${cnt>1?'s':''} received!`;
+        banner.textContent = `🔔 ${cnt} new order${cnt>1?'s':''} received!`;
         banner.style.display = 'block';
         setTimeout(()=>{banner.style.display='none';},8000);
       }
@@ -926,7 +926,7 @@ async function checkNew(){
     _prevNewCount = cnt;
     // Promo uses in analytics (approximate from weekly data)
     const promoEl = document.getElementById('a-promos');
-    if (promoEl && promoEl.textContent==='â') promoEl.textContent = d.promo_uses||'â';
+    if (promoEl && promoEl.textContent==='—') promoEl.textContent = d.promo_uses||'—';
   } catch(e){}
 }
 
