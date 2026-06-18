@@ -419,8 +419,8 @@ def admin_dashboard():
 
     stats = {
         'total_orders':      db_execute('SELECT COUNT(*) as c FROM orders', fetch='one')['c'],
-        'today_orders':      db_execute("SELECT COUNT(*) as c FROM orders WHERE DATE(created_at)=CURRENT_DATE", fetch='one')['c'],
-        'today_revenue':     db_execute("SELECT COALESCE(SUM(total),0) as s FROM orders WHERE DATE(created_at)=CURRENT_DATE", fetch='one')['s'],
+        'today_orders':      db_execute("SELECT COUNT(*) as c FROM orders WHERE DATE(created_at)=CURRENT_DATE AND status!='cancelled'", fetch='one')['c'],
+        'today_revenue':     db_execute("SELECT COALESCE(SUM(total),0) as s FROM orders WHERE DATE(created_at)=CURRENT_DATE AND status!='cancelled'", fetch='one')['s'],
         'pending':           db_execute("SELECT COUNT(*) as c FROM orders WHERE status='received'", fetch='one')['c'],
         'total_bookings':    db_execute("SELECT COUNT(*) as c FROM bookings", fetch='one')['c'],
         'upcoming_bookings': db_execute("SELECT COUNT(*) as c FROM bookings WHERE date::date >= CURRENT_DATE AND status != 'cancelled'", fetch='one')['c'],
@@ -428,14 +428,14 @@ def admin_dashboard():
 
     weekly_rows = db_execute('''
         SELECT DATE(created_at) as day, COUNT(*) as orders, COALESCE(SUM(total),0) as revenue
-        FROM orders WHERE created_at >= NOW() - INTERVAL '7 days'
+        FROM orders WHERE created_at >= NOW() - INTERVAL '7 days' AND status!='cancelled'
         GROUP BY DATE(created_at) ORDER BY day
     ''', fetch='all')
     weekly_data = {}
     for r in (weekly_rows or []):
         weekly_data[str(r['day'])] = {'orders': r['orders'], 'revenue': float(r['revenue'])}
 
-    top_dishes_raw = db_execute('SELECT items FROM orders LIMIT 500', fetch='all')
+    top_dishes_raw = db_execute("SELECT items FROM orders WHERE status!='cancelled' LIMIT 500", fetch='all')
     dish_counts = {}
     for row in (top_dishes_raw or []):
         for item in json.loads(row['items']):
@@ -559,7 +559,7 @@ def admin_promos_delete(code):
 def admin_analytics_hourly():
     rows = db_execute('''
         SELECT EXTRACT(HOUR FROM created_at) as hour, COUNT(*) as orders
-        FROM orders WHERE created_at >= NOW() - INTERVAL '30 days'
+        FROM orders WHERE created_at >= NOW() - INTERVAL '30 days' AND status!='cancelled'
         GROUP BY EXTRACT(HOUR FROM created_at) ORDER BY hour
     ''', fetch='all')
     result = {}
