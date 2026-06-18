@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -7,28 +7,38 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{--navy:#0f1a2e;--navy2:#162236;--gold:#c9973a;--gold2:#e8b44a;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;--text:#e2e8f0;--muted:#94a3b8;--card:#1e2d47;--border:#2a3f60;--sidebar:220px}
+[data-theme="light"]{--navy:#f0f4f8;--navy2:#ffffff;--gold:#b07d20;--gold2:#c9973a;--green:#16a34a;--red:#dc2626;--amber:#d97706;--blue:#2563eb;--text:#1e293b;--muted:#64748b;--card:#ffffff;--border:#e2e8f0}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--text);display:flex;min-height:100vh}
-#sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--text);display:flex;min-height:100vh;transition:background .2s,color .2s}
+#sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:200;transition:transform .25s}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150}
 .sb-logo{padding:24px 20px;border-bottom:1px solid var(--border)}
 .sb-logo h1{font-size:1.1rem;font-weight:700;color:var(--gold)}
 .sb-logo p{font-size:.7rem;color:var(--muted);margin-top:2px}
 nav{flex:1;padding:16px 0;overflow-y:auto}
 .nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;cursor:pointer;color:var(--muted);font-size:.85rem;font-weight:500;transition:all .15s;border-left:3px solid transparent}
-.nav-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-item:hover{color:var(--text);background:rgba(128,128,128,.07)}
 .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,151,58,.08)}
 .nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:999px;display:none}
+.nav-badge.show{display:inline}
 .sb-footer{padding:16px 20px;border-top:1px solid var(--border)}
 .sb-user{font-size:.8rem;color:var(--muted)}
 .sb-user strong{color:var(--text);display:block;margin-bottom:4px}
 .logout-btn{display:inline-block;margin-top:8px;font-size:.75rem;color:var(--red);text-decoration:none}
-#main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column}
-.topbar{background:var(--navy2);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.topbar h2{font-size:1.1rem;font-weight:600}
+#main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{background:var(--navy2);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:12px}
+.topbar h2{font-size:1.1rem;font-weight:600;flex:1}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+#ham-btn{display:none;background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.4rem;padding:4px}
 #notif-bell{position:relative;background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.3rem;padding:4px 8px}
 #notif-bell.ringing{color:var(--gold);animation:ring .4s ease 3}
 @keyframes ring{0%,100%{transform:rotate(0)}25%{transform:rotate(-15deg)}75%{transform:rotate(15deg)}}
 #notif-count{position:absolute;top:0;right:0;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;min-width:16px;height:16px;border-radius:999px;display:none;align-items:center;justify-content:center}
+#notif-count.show{display:flex}
+#notif-perm-btn{background:none;border:1px solid var(--border);cursor:pointer;color:var(--muted);font-size:.75rem;padding:5px 10px;border-radius:8px;transition:all .15s}
+#notif-perm-btn:hover{border-color:var(--gold);color:var(--gold)}
+#theme-btn{background:none;border:1px solid var(--border);cursor:pointer;color:var(--muted);font-size:1rem;padding:5px 9px;border-radius:8px;transition:all .15s}
+#theme-btn:hover{border-color:var(--gold);color:var(--gold)}
 .content{padding:24px 28px;flex:1;overflow-y:auto}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
@@ -38,6 +48,7 @@ nav{flex:1;padding:16px 0;overflow-y:auto}
 .stat-card.green::before{background:var(--green)}
 .stat-card.blue::before{background:var(--blue)}
 .stat-card.amber::before{background:var(--amber)}
+.stat-card.purple::before{background:#a855f7}
 .stat-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
 .stat-value{font-size:2rem;font-weight:700;color:var(--text)}
 .stat-sub{font-size:.72rem;color:var(--muted);margin-top:4px}
@@ -45,17 +56,17 @@ nav{flex:1;padding:16px 0;overflow-y:auto}
 .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
 .chart-card h3{font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:16px;text-transform:uppercase;letter-spacing:.04em}
 .chart-wrap{position:relative;height:200px}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
 .section-header h3{font-size:1rem;font-weight:600}
 .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
 .filter-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;transition:all .15s}
 .filter-btn.active,.filter-btn:hover{background:var(--gold);border-color:var(--gold);color:#000}
 .tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;font-size:.82rem}
-thead{background:rgba(255,255,255,.04)}
+thead{background:rgba(128,128,128,.06)}
 th{padding:12px 14px;text-align:left;font-weight:600;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
-td{padding:12px 14px;border-top:1px solid var(--border);vertical-align:middle}
-tr:hover td{background:rgba(255,255,255,.02)}
+td{padding:11px 14px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:rgba(128,128,128,.04)}
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:600;text-transform:uppercase}
 .badge-received{background:rgba(59,130,246,.15);color:#93c5fd}
 .badge-preparing{background:rgba(245,158,11,.15);color:#fcd34d}
@@ -65,12 +76,17 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .badge-pending{background:rgba(156,163,175,.15);color:#9ca3af}
 .badge-confirmed{background:rgba(34,197,94,.15);color:#86efac}
 .badge-paid{background:rgba(34,197,94,.15);color:#86efac}
+.badge-active{background:rgba(34,197,94,.15);color:#86efac}
+.badge-inactive{background:rgba(239,68,68,.15);color:#fca5a5}
 .status-sel{background:var(--navy2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:8px;font-size:.78rem;cursor:pointer}
 .status-sel:focus{outline:none;border-color:var(--gold)}
-.order-items-list{display:none;padding:10px 14px;background:rgba(0,0,0,.2);border-top:1px solid var(--border)}
+.order-items-list{display:none;padding:10px 14px;background:rgba(0,0,0,.12);border-top:1px solid var(--border)}
 .order-items-list.open{display:block}
 .order-item-row{display:flex;justify-content:space-between;padding:3px 0;font-size:.8rem;color:var(--muted)}
 .expand-btn{background:none;border:none;color:var(--gold);cursor:pointer;font-size:.8rem;text-decoration:underline}
+.quick-status{display:flex;gap:4px;flex-wrap:wrap}
+.qs-btn{padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.68rem;cursor:pointer;transition:all .12s;white-space:nowrap}
+.qs-btn:hover,.qs-btn.current{background:var(--gold);border-color:var(--gold);color:#000;font-weight:600}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .form-group{display:flex;flex-direction:column;gap:6px}
 label{font-size:.78rem;color:var(--muted);font-weight:500}
@@ -82,26 +98,46 @@ textarea{resize:vertical;min-height:80px}
 .btn-gold:hover{background:var(--gold2)}
 .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
 .btn-outline:hover{border-color:var(--gold);color:var(--gold)}
-.btn-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid var(--red)}
+.btn-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
 .btn-red:hover{background:var(--red);color:#fff}
+.btn-green{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.btn-green:hover{background:var(--green);color:#fff}
 .btn-sm{padding:6px 12px;font-size:.75rem}
-.action-btns{display:flex;gap:8px}
+.action-btns{display:flex;gap:6px;flex-wrap:wrap}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;padding:28px}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;padding:28px;max-height:90vh;overflow-y:auto}
 .modal h3{font-size:1.05rem;font-weight:700;margin-bottom:20px;color:var(--gold)}
 .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
-#toast{position:fixed;bottom:28px;right:28px;z-index:999;background:#1e293b;border:1px solid var(--border);border-radius:12px;padding:14px 20px;font-size:.85rem;transform:translateY(100px);opacity:0;transition:all .3s;pointer-events:none}
+#toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 20px;font-size:.85rem;transform:translateY(100px);opacity:0;transition:all .3s;pointer-events:none;max-width:300px}
 #toast.show{transform:translateY(0);opacity:1}
 #toast.ok{border-left:4px solid var(--green)}
 #toast.err{border-left:4px solid var(--red)}
-.search-input{background:var(--navy2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-size:.83rem;width:240px}
+.search-input{background:var(--navy2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-size:.83rem;width:220px}
 .search-input:focus{outline:none;border-color:var(--gold)}
 #notif-banner{display:none;background:rgba(201,151,58,.12);border:1px solid var(--gold);border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:.85rem;color:var(--gold)}
+.empty-state{text-align:center;color:var(--muted);padding:48px 20px;font-size:.9rem}
+.loading{text-align:center;color:var(--muted);padding:32px;font-size:.85rem}
+/* Mobile */
+@media(max-width:768px){
+  #ham-btn{display:block}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #sidebar-overlay.show{display:block}
+  #main{margin-left:0}
+  .content{padding:16px}
+  .topbar{padding:12px 16px}
+  .charts-row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .search-input{width:140px}
+  th:nth-child(n+5),td:nth-child(n+5){display:none}
+  th:nth-child(3),td:nth-child(3){display:none}
+}
 </style>
 </head>
 <body>
 
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
 <aside id="sidebar">
   <div class="sb-logo">
     <h1>ð Masala Kitchen</h1>
@@ -114,6 +150,12 @@ textarea{resize:vertical;min-height:80px}
     </div>
     <div class="nav-item" onclick="showTab('bookings')">
       <span>ð</span> Bookings
+    </div>
+    <div class="nav-item" onclick="showTab('customers')">
+      <span>ð¥</span> Customers
+    </div>
+    <div class="nav-item" onclick="showTab('promos')">
+      <span>ðï¸</span> Promo Codes
     </div>
     <div class="nav-item" onclick="showTab('menu')">
       <span>ð½ï¸</span> Menu Editor
@@ -136,16 +178,21 @@ textarea{resize:vertical;min-height:80px}
 
 <div id="main">
   <div class="topbar">
+    <button id="ham-btn" onclick="toggleSidebar()" title="Menu">â°</button>
     <h2 id="topbar-title">Orders</h2>
-    <button id="notif-bell" title="New orders" onclick="showTab('orders')">
-      ð<span id="notif-count"></span>
-    </button>
+    <div class="topbar-actions">
+      <button id="notif-perm-btn" onclick="requestNotifPerm()" title="Enable browser notifications">ð Notify</button>
+      <button id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark">âï¸</button>
+      <button id="notif-bell" title="New orders" onclick="showTab('orders')">
+        ð<span id="notif-count"></span>
+      </button>
+    </div>
   </div>
 
   <div class="content">
     <div id="notif-banner"></div>
 
-    <!-- ORDERS -->
+    <!-- ORDERS TAB -->
     <div id="tab-orders" class="tab-panel active">
       <div class="stats-grid">
         <div class="stat-card amber">
@@ -183,7 +230,7 @@ textarea{resize:vertical;min-height:80px}
         <table>
           <thead><tr>
             <th>ID</th><th>Time</th><th>Customer</th><th>Type</th>
-            <th>Items</th><th>Total</th><th>Payment</th><th>Status</th>
+            <th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th>
           </tr></thead>
           <tbody id="orders-tbody">
           {% for o in orders %}
@@ -203,16 +250,20 @@ textarea{resize:vertical;min-height:80px}
             </td>
             <td><span class="badge badge-{{ o.payment_status }}">{{ o.payment_method }}</span></td>
             <td>
-              <select class="status-sel" onchange="updateOrderStatus('{{ o.id }}',this.value)">
+              <div class="quick-status">
                 {% for s in ['received','preparing','ready','completed','cancelled'] %}
-                <option value="{{ s }}" {% if o.status==s %}selected{% endif %}>{{ s|capitalize }}</option>
+                <button class="qs-btn {% if o.status==s %}current{% endif %}" onclick="updateOrderStatus('{{ o.id }}','{{ s }}',this)">{{ s|capitalize }}</button>
                 {% endfor %}
-              </select>
+              </div>
+            </td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick='printReceipt({{ o|tojson }})' title="Print receipt">ð¨ï¸</button>
             </td>
           </tr>
-          <tr id="items-{{ o.id }}"><td colspan="8" style="padding:0">
+          <tr id="items-{{ o.id }}"><td colspan="9" style="padding:0">
             <div class="order-items-list">
-              {% for item in o.order_items %}         <div class="order-item-row">
+              {% for item in o.order_items %}
+              <div class="order-item-row">
                 <span>{{ item.qty }}x {{ item.name }}{% if item.spice %} [{{ item.spice }}]{% endif %}{% if item.portion %} ({{ item.portion }}){% endif %}</span>
                 <span>Â£{{ "%.2f"|format(item.price * item.qty) }}</span>
               </div>
@@ -221,14 +272,14 @@ textarea{resize:vertical;min-height:80px}
             </div>
           </td></tr>
           {% else %}
-          <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px">No orders yet</td></tr>
+          <tr><td colspan="9" class="empty-state">No orders yet</td></tr>
           {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- BOOKINGS -->
+    <!-- BOOKINGS TAB -->
     <div id="tab-bookings" class="tab-panel">
       <div class="stats-grid">
         <div class="stat-card blue">
@@ -255,19 +306,53 @@ textarea{resize:vertical;min-height:80px}
             <td style="color:var(--muted);font-size:.8rem;max-width:180px">{{ b.notes or 'â' }}</td>
             <td><span class="badge badge-{{ b.status }}">{{ b.status|capitalize }}</span></td>
             <td><div class="action-btns">
-              <button class="btn btn-outline btn-sm" onclick="updateBooking({{ b.id }},'confirmed')">â Confirm</button>
-              <button class="btn btn-red btn-sm" onclick="updateBooking({{ b.id }},'cancelled')">â Cancel</button>
+              <button class="btn btn-green btn-sm" onclick="updateBooking({{ b.id }},'confirmed')">â Confirm</button>
+              <button class="btn btn-red btn-sm" onclick="updateBooking({{ b.id }},'cancelled')">â Cancel</button>
             </div></td>
           </tr>
           {% else %}
-          <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px">No bookings yet</td></tr>
+          <tr><td colspan="7" class="empty-state">No bookings yet</td></tr>
           {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- MENU -->
+    <!-- CUSTOMERS TAB -->
+    <div id="tab-customers" class="tab-panel">
+      <div class="stats-grid" id="cust-stats">
+        <div class="stat-card blue"><div class="stat-label">Total Registered</div><div class="stat-value" id="cs-total">â</div></div>
+        <div class="stat-card green"><div class="stat-label">Have Ordered</div><div class="stat-value" id="cs-active">â</div></div>
+        <div class="stat-card amber"><div class="stat-label">Customer Revenue</div><div class="stat-value" id="cs-revenue">â</div></div>
+        <div class="stat-card purple"><div class="stat-label">Avg Spend</div><div class="stat-value" id="cs-avg">â</div></div>
+      </div>
+      <div class="section-header">
+        <h3>Customer Accounts</h3>
+        <input class="search-input" placeholder="Search name or emailâ¦" oninput="filterCustomers(this.value)">
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Orders</th><th>Total Spend</th><th>Avg Order</th><th>Joined</th></tr></thead>
+          <tbody id="cust-tbody"><tr><td colspan="7" class="loading">Loadingâ¦</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PROMOS TAB -->
+    <div id="tab-promos" class="tab-panel">
+      <div class="section-header">
+        <h3>Promo Codes</h3>
+        <button class="btn btn-gold" onclick="openPromoModal()">+ Add Promo</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Single-Use</th><th>Used</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="promos-tbody"><tr><td colspan="7" class="loading">Loadingâ¦</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MENU TAB -->
     <div id="tab-menu" class="tab-panel">
       <div class="section-header">
         <h3>Menu Items</h3>
@@ -290,7 +375,7 @@ textarea{resize:vertical;min-height:80px}
             <td><span class="badge {% if item.active %}badge-completed{% else %}badge-cancelled{% endif %}">{% if item.active %}Active{% else %}Hidden{% endif %}</span></td>
             <td><div class="action-btns">
               <button class="btn btn-outline btn-sm" onclick='editMenu({{ item|tojson }})'>âï¸ Edit</button>
-              <button class="btn btn-red btn-sm" onclick="deleteMenu({{ item.id }})">ð</button>
+              <button class="btn btn-red btn-sm" onclick="deleteMenu({{ item.id }})">ðï¸</button>
             </div></td>
           </tr>
           {% endfor %}
@@ -299,8 +384,26 @@ textarea{resize:vertical;min-height:80px}
       </div>
     </div>
 
-    <!-- ANALYTICS -->
+    <!-- ANALYTICS TAB -->
     <div id="tab-analytics" class="tab-panel">
+      <div class="stats-grid">
+        <div class="stat-card green">
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-value" id="a-revenue">â</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Avg Order Value</div>
+          <div class="stat-value" id="a-avg">â</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">Busiest Hour</div>
+          <div class="stat-value" id="a-hour">â</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Promo Uses (7d)</div>
+          <div class="stat-value" id="a-promos">â</div>
+        </div>
+      </div>
       <div class="section-header">
         <h3>Analytics</h3>
         <span style="color:var(--muted);font-size:.8rem">Last 7 days</span>
@@ -315,13 +418,19 @@ textarea{resize:vertical;min-height:80px}
           <div class="chart-wrap"><canvas id="dishChart"></canvas></div>
         </div>
       </div>
-      <div class="chart-card">
-        <h3>Daily Order Count</h3>
-        <div class="chart-wrap" style="height:160px"><canvas id="orderCountChart"></canvas></div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Daily Order Count</h3>
+          <div class="chart-wrap" style="height:160px"><canvas id="orderCountChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Orders by Hour (30d)</h3>
+          <div class="chart-wrap" style="height:160px"><canvas id="hourlyChart"></canvas></div>
+        </div>
       </div>
     </div>
 
-    <!-- SETTINGS -->
+    <!-- SETTINGS TAB -->
     <div id="tab-settings" class="tab-panel">
       <div style="max-width:480px">
         <h3 style="margin-bottom:20px">Change Password</h3>
@@ -332,6 +441,11 @@ textarea{resize:vertical;min-height:80px}
             <div class="form-group"><label>Confirm New Password</label><input type="password" id="pw-confirm"></div>
           </div>
           <div style="margin-top:16px"><button class="btn btn-gold" onclick="changePassword()">Update Password</button></div>
+        </div>
+        <div style="margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px">
+          <h3 style="margin-bottom:12px">Notifications</h3>
+          <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Enable browser notifications to get OS-level alerts for new orders even when this tab is in the background.</p>
+          <button class="btn btn-outline" onclick="requestNotifPerm()" id="notif-settings-btn">Enable Browser Notifications</button>
         </div>
         <div style="margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px">
           <h3 style="margin-bottom:12px">System Info</h3>
@@ -373,15 +487,88 @@ textarea{resize:vertical;min-height:80px}
   </div>
 </div>
 
+<!-- Promo Modal -->
+<div class="modal-overlay" id="promo-modal">
+  <div class="modal">
+    <h3>Add Promo Code</h3>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="form-group"><label>Code (e.g. SAVE15)</label><input type="text" id="promo-code" placeholder="SUMMER20" style="text-transform:uppercase"></div>
+      <div class="form-group"><label>Type</label>
+        <select id="promo-type">
+          <option value="percent">Percentage off (%)</option>
+          <option value="flat">Fixed amount off (Â£)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Value</label><input type="number" id="promo-value" step="0.01" min="0" placeholder="e.g. 15 for 15%"></div>
+      <div class="form-group"><label><input type="checkbox" id="promo-single" style="width:auto;margin-right:6px"> Single use per customer</label></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closePromoModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="addPromo()">Create Code</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 const WEEKLY_DATA = {{ weekly_data|safe }};
 const TOP_DISHES  = {{ top_dishes|safe }};
 
-const TABS = ['orders','bookings','menu','analytics','settings'];
-const TITLES = {orders:'Orders',bookings:'Bookings',menu:'Menu Editor',analytics:'Analytics',settings:'Settings'};
+const TABS = ['orders','bookings','customers','promos','menu','analytics','settings'];
+const TITLES = {orders:'Orders',bookings:'Bookings',customers:'Customers',promos:'Promo Codes',menu:'Menu Editor',analytics:'Analytics',settings:'Settings'};
 
+let _filter='all', _search='', _custData=[], _chartsInit=false, _hourlyInit=false;
+let _prevNewCount = 0;
+
+// ââ Theme ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? 'light' : 'dark';
+  document.getElementById('theme-btn').textContent = isDark ? 'ð' : 'âï¸';
+  localStorage.setItem('mk_theme', html.dataset.theme);
+}
+(function initTheme(){
+  const t = localStorage.getItem('mk_theme') || 'dark';
+  document.documentElement.dataset.theme = t;
+  document.getElementById('theme-btn').textContent = t === 'dark' ? 'âï¸' : 'ð';
+})();
+
+// ââ Sidebar (mobile) âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+// ââ Browser Notifications ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+async function requestNotifPerm() {
+  if (!('Notification' in window)) { toast('Browser does not support notifications','err'); return; }
+  if (Notification.permission === 'granted') { toast('Notifications already enabled â'); return; }
+  const p = await Notification.requestPermission();
+  if (p === 'granted') { toast('ð Browser notifications enabled!'); updateNotifBtn(); }
+  else { toast('Permission denied â enable in browser settings','err'); }
+}
+function pushNotif(title, body) {
+  if (Notification.permission === 'granted') {
+    try { new Notification(title, { body, icon: '' }); } catch(e) {}
+  }
+}
+function updateNotifBtn() {
+  const b = document.getElementById('notif-perm-btn');
+  const b2 = document.getElementById('notif-settings-btn');
+  if (Notification.permission === 'granted') {
+    if (b) b.style.display = 'none';
+    if (b2) b2.textContent = 'â Notifications Enabled';
+  }
+}
+updateNotifBtn();
+
+// ââ Tab navigation âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function showTab(name) {
   TABS.forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('active', t===name);
@@ -390,148 +577,376 @@ function showTab(name) {
     el.classList.toggle('active', TABS[i]===name);
   });
   document.getElementById('topbar-title').textContent = TITLES[name]||name;
-  if(name==='analytics') initCharts();
+  closeSidebar();
+  if (name==='analytics') initCharts();
+  if (name==='customers') loadCustomers();
+  if (name==='promos') loadPromos();
 }
 
+// ââ Toast ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function toast(msg,type='ok') {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='show '+type;
-  clearTimeout(t._t); t._t=setTimeout(()=>{t.className=''},3000);
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>{ el.className=''; }, 3500);
 }
 
-let _filter='all',_search='';
+// ââ Orders filter / search âââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function setFilter(val,btn) {
-  _filter=val;
+  _filter = val;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   applyFilter();
 }
 function filterOrders(q) { _search=q.toLowerCase(); applyFilter(); }
 function applyFilter() {
-  document.querySelectorAll('.order-row').forEach(tr => {
-    const ok=(_filter==='all'||tr.dataset.status===_filter)&&(!_search||(tr.dataset.search||'').includes(_search));
-    tr.style.display=ok?'':'none';
-    const nx=tr.nextElementSibling;
-    if(nx&&nx.querySelector('.order-items-list')) nx.style.display=ok?'':'none';
+  document.querySelectorAll('.order-row').forEach(row => {
+    const statusMatch = _filter==='all' || row.dataset.status===_filter;
+    const searchMatch = !_search || row.dataset.search.includes(_search);
+    row.style.display = (statusMatch && searchMatch) ? '' : 'none';
+    const items = document.getElementById('items-' + row.querySelector('td a').textContent.replace('#','').trim());
+    if (items) items.style.display = (statusMatch && searchMatch) ? '' : 'none';
   });
 }
 
 function toggleItems(id) {
-  const el=document.getElementById(id)?.querySelector('.order-items-list');
-  if(el) el.classList.toggle('open');
+  const el = document.getElementById(id);
+  if (el) el.querySelector('.order-items-list').classList.toggle('open');
 }
 
-async function updateOrderStatus(oid,status) {
-  const r=await fetch(`/admin/api/order/${oid}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
-  const d=await r.json();
-  if(d.success) { const row=document.querySelector(`[data-search*="${oid.toLowerCase()}"]`); if(row)row.dataset.status=status; toast(`#${oid} â ${status}`); }
-  else toast(d.error||'Error','err');
+// ââ Order status update ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+async function updateOrderStatus(oid, status, btn) {
+  const r = await fetch(`/admin/api/order/${oid}/status`, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status})
+  });
+  const d = await r.json();
+  if (d.success) {
+    toast(`Order #${oid} â ${status}`);
+    if (btn) {
+      const row = btn.closest('tr');
+      row.dataset.status = status;
+      row.querySelectorAll('.qs-btn').forEach(b => b.classList.toggle('current', b.textContent.toLowerCase()===status));
+    }
+  } else { toast('Update failed','err'); }
 }
 
 async function updateBooking(bid,status) {
-  const r=await fetch(`/admin/api/booking/${bid}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
-  const d=await r.json();
-  if(d.success){toast(`Booking #${bid} ${status}`);location.reload();}
-  else toast(d.error||'Error','err');
+  const r = await fetch(`/admin/api/booking/${bid}/status`,{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})
+  });
+  const d = await r.json();
+  if (d.success) { toast(`Booking ${bid} â ${status}`); setTimeout(()=>location.reload(),1000); }
+  else toast('Update failed','err');
 }
 
+// ââ Print Receipt ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function printReceipt(o) {
+  const items = (o.order_items||[]).map(i =>
+    `<tr><td>${i.qty}x ${i.name}${i.spice?' ['+i.spice+']':''}${i.portion?' ('+i.portion+')':''}</td><td style="text-align:right">Â£${(i.price*i.qty).toFixed(2)}</td></tr>`
+  ).join('');
+  const w = window.open('','_blank','width=400,height=600');
+  w.document.write(`<!DOCTYPE html><html><head><title>Receipt #${o.id}</title>
+  <style>body{font-family:monospace;padding:20px;max-width:300px;margin:0 auto}
+  h2{text-align:center;border-bottom:2px solid #000;padding-bottom:8px}
+  table{width:100%;border-collapse:collapse}td{padding:4px 0;font-size:13px}
+  .total{font-size:16px;font-weight:bold;border-top:1px solid #000;margin-top:8px;padding-top:8px}
+  .footer{text-align:center;margin-top:16px;font-size:11px;color:#555}
+  </style></head><body>
+  <h2>ð Masala Kitchen</h2>
+  <div style="text-align:center;font-size:12px;margin-bottom:12px">Order #${o.id} | ${(o.created_at||'').substring(0,16)}</div>
+  <div style="margin-bottom:8px;font-size:12px">
+    <strong>${o.name}</strong> | ${o.phone}<br>
+    Type: ${o.order_type}${o.address?' | '+o.address:''}
+  </div>
+  <table>${items}</table>
+  ${o.discount>0?`<div style="font-size:12px;margin-top:6px">Promo ${o.promo_code}: -Â£${o.discount.toFixed(2)}</div>`:''}
+  <div class="total">Total: Â£${o.total.toFixed(2)} (${o.payment_method})</div>
+  ${o.notes?`<div style="font-size:12px;margin-top:8px;color:#555">Note: ${o.notes}</div>`:''}
+  <div class="footer">Thank you for your order!<br>masala-kitchen-demo.onrender.com</div>
+  </body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),400);
+}
+
+// ââ Customers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+async function loadCustomers() {
+  const tbody = document.getElementById('cust-tbody');
+  tbody.innerHTML = '<tr><td colspan="7" class="loading">Loadingâ¦</td></tr>';
+  try {
+    const r = await fetch('/admin/api/customers');
+    _custData = await r.json();
+    renderCustomers(_custData);
+    // Stats
+    const total = _custData.length;
+    const active = _custData.filter(c=>c.order_count>0).length;
+    const revenue = _custData.reduce((s,c)=>s+(parseFloat(c.total_spend)||0),0);
+    const avgSpend = active ? revenue/active : 0;
+    document.getElementById('cs-total').textContent = total;
+    document.getElementById('cs-active').textContent = active;
+    document.getElementById('cs-revenue').textContent = 'Â£'+revenue.toFixed(2);
+    document.getElementById('cs-avg').textContent = 'Â£'+avgSpend.toFixed(2);
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Failed to load customers</td></tr>'; }
+}
+function renderCustomers(data) {
+  const tbody = document.getElementById('cust-tbody');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No customers yet</td></tr>'; return; }
+  tbody.innerHTML = data.map((c,i) => {
+    const avg = c.order_count ? (parseFloat(c.total_spend)/c.order_count).toFixed(2) : '0.00';
+    const joined = (c.created_at||'').substring(0,10);
+    return `<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td style="font-weight:600">${c.name||'â'}</td>
+      <td style="color:var(--muted);font-size:.8rem">${c.email}</td>
+      <td><span style="font-weight:700">${c.order_count}</span></td>
+      <td style="font-weight:700">Â£${parseFloat(c.total_spend||0).toFixed(2)}</td>
+      <td style="color:var(--muted)">Â£${avg}</td>
+      <td style="color:var(--muted);font-size:.78rem">${joined}</td>
+    </tr>`;
+  }).join('');
+}
+function filterCustomers(q) {
+  const query = q.toLowerCase();
+  renderCustomers(_custData.filter(c => (c.name||'').toLowerCase().includes(query) || c.email.toLowerCase().includes(query)));
+}
+
+// ââ Promos âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function openPromoModal() { document.getElementById('promo-modal').classList.add('open'); }
+function closePromoModal() { document.getElementById('promo-modal').classList.remove('open'); }
+
+async function loadPromos() {
+  const tbody = document.getElementById('promos-tbody');
+  tbody.innerHTML = '<tr><td colspan="7" class="loading">Loadingâ¦</td></tr>';
+  try {
+    const r = await fetch('/admin/api/promos');
+    const data = await r.json();
+    if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No promo codes yet</td></tr>'; return; }
+    tbody.innerHTML = data.map(p => {
+      const val = p.type==='percent' ? `${p.value}%` : `Â£${parseFloat(p.value).toFixed(2)}`;
+      const statusBadge = p.active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-inactive">Disabled</span>';
+      return `<tr>
+        <td style="font-weight:700;font-size:.9rem;letter-spacing:.05em">${p.code}</td>
+        <td style="color:var(--muted);text-transform:capitalize">${p.type}</td>
+        <td style="font-weight:700">${val}</td>
+        <td>${p.single_use?'<span class="badge badge-received">Yes</span>':'<span class="badge badge-pending">No</span>'}</td>
+        <td><span style="font-weight:700">${p.usage_count}</span><span style="color:var(--muted);font-size:.75rem"> uses</span></td>
+        <td>${statusBadge}</td>
+        <td><div class="action-btns">
+          ${p.active
+            ? `<button class="btn btn-outline btn-sm" onclick="togglePromo('${p.code}',false)">Disable</button>`
+            : `<button class="btn btn-green btn-sm" onclick="togglePromo('${p.code}',true)">Enable</button>`}
+          <button class="btn btn-red btn-sm" onclick="deletePromo('${p.code}')">ðï¸</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Failed to load promos</td></tr>'; }
+}
+
+async function addPromo() {
+  const code  = document.getElementById('promo-code').value.trim().toUpperCase();
+  const type  = document.getElementById('promo-type').value;
+  const value = parseFloat(document.getElementById('promo-value').value);
+  const single = document.getElementById('promo-single').checked;
+  if (!code || isNaN(value) || value<=0) { toast('Fill in all fields','err'); return; }
+  const r = await fetch('/admin/api/promos', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({code,type,value,single_use:single})
+  });
+  const d = await r.json();
+  if (d.success) { toast(`â Promo ${code} created`); closePromoModal(); loadPromos(); }
+  else { toast(d.error||'Failed to create promo','err'); }
+}
+
+async function togglePromo(code, active) {
+  const r = await fetch(`/admin/api/promos/${code}`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({active})
+  });
+  const d = await r.json();
+  if (d.success) { toast(`${code} ${active?'enabled':'disabled'}`); loadPromos(); }
+  else toast('Failed','err');
+}
+
+async function deletePromo(code) {
+  if (!confirm(`Delete promo code ${code}? This cannot be undone.`)) return;
+  const r = await fetch(`/admin/api/promos/${code}`, {method:'DELETE'});
+  const d = await r.json();
+  if (d.success) { toast(`${code} deleted`); loadPromos(); }
+  else toast('Failed','err');
+}
+
+// ââ Menu âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function openMenuModal() {
-  document.getElementById('modal-title').textContent='Add Menu Item';
-  ['modal-id','modal-name','modal-desc','modal-price','modal-allergens'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('modal-cat').selectedIndex=0;
-  document.getElementById('modal-vegan').checked=false;
-  document.getElementById('modal-active').checked=true;
+  document.getElementById('modal-title').textContent = 'Add Menu Item';
+  document.getElementById('modal-id').value = '';
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-desc').value = '';
+  document.getElementById('modal-price').value = '';
+  document.getElementById('modal-allergens').value = '';
+  document.getElementById('modal-vegan').checked = false;
+  document.getElementById('modal-active').checked = true;
   document.getElementById('menu-modal').classList.add('open');
 }
 function editMenu(item) {
-  document.getElementById('modal-title').textContent='Edit Menu Item';
-  document.getElementById('modal-id').value=item.id;
-  const cat=document.getElementById('modal-cat');
-  for(let i=0;i<cat.options.length;i++) if(cat.options[i].value===item.category){cat.selectedIndex=i;break;}
-  document.getElementById('modal-name').value=item.name;
-  document.getElementById('modal-desc').value=item.description||'';
-  document.getElementById('modal-price').value=item.price;
-  document.getElementById('modal-allergens').value=Array.isArray(item.allergens)?item.allergens.join(', '):'';
-  document.getElementById('modal-vegan').checked=!!item.vegan;
-  document.getElementById('modal-active').checked=item.active==1;
+  document.getElementById('modal-title').textContent = 'Edit Menu Item';
+  document.getElementById('modal-id').value = item.id;
+  document.getElementById('modal-cat').value = item.category;
+  document.getElementById('modal-name').value = item.name;
+  document.getElementById('modal-desc').value = item.description;
+  document.getElementById('modal-price').value = item.price;
+  document.getElementById('modal-allergens').value = Array.isArray(item.allergens) ? item.allergens.join(', ') : item.allergens;
+  document.getElementById('modal-vegan').checked = !!item.vegan;
+  document.getElementById('modal-active').checked = !!item.active;
   document.getElementById('menu-modal').classList.add('open');
 }
 function closeMenuModal(){document.getElementById('menu-modal').classList.remove('open')}
+
 async function saveMenu() {
-  const id=document.getElementById('modal-id').value;
-  const data={category:document.getElementById('modal-cat').value,name:document.getElementById('modal-name').value.trim(),description:document.getElementById('modal-desc').value.trim(),price:parseFloat(document.getElementById('modal-price').value),allergens:document.getElementById('modal-allergens').value,vegan:document.getElementById('modal-vegan').checked,active:document.getElementById('modal-active').checked};
-  if(!data.name||!data.price){toast('Name and price required','err');return;}
-  const r=await fetch(id?`/admin/api/menu/${id}`:'/admin/api/menu',{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-  const d=await r.json();
-  if(d.success){closeMenuModal();toast('Saved');location.reload();}else toast(d.error||'Error','err');
+  const id = document.getElementById('modal-id').value;
+  const body = {
+    category: document.getElementById('modal-cat').value,
+    name: document.getElementById('modal-name').value,
+    description: document.getElementById('modal-desc').value,
+    price: document.getElementById('modal-price').value,
+    allergens: document.getElementById('modal-allergens').value,
+    vegan: document.getElementById('modal-vegan').checked,
+    active: document.getElementById('modal-active').checked,
+  };
+  const url  = id ? `/admin/api/menu/${id}` : '/admin/api/menu';
+  const meth = id ? 'PUT' : 'POST';
+  const r = await fetch(url,{method:meth,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d = await r.json();
+  if (d.success) { toast('Menu item saved'); closeMenuModal(); setTimeout(()=>location.reload(),600); }
+  else toast('Save failed','err');
 }
 async function deleteMenu(id) {
-  if(!confirm('Hide this item?'))return;
-  const r=await fetch(`/admin/api/menu/${id}`,{method:'DELETE'});
-  const d=await r.json();
-  if(d.success){toast('Hidden');location.reload();}else toast(d.error||'Error','err');
+  if (!confirm('Hide this menu item?')) return;
+  const r = await fetch(`/admin/api/menu/${id}`,{method:'DELETE'});
+  const d = await r.json();
+  if (d.success) { toast('Item hidden'); setTimeout(()=>location.reload(),600); }
 }
 
+// ââ Password âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function changePassword() {
-  const c=document.getElementById('pw-current').value,n=document.getElementById('pw-new').value,k=document.getElementById('pw-confirm').value;
-  if(n!==k){toast('Passwords do not match','err');return;}
-  const r=await fetch('/admin/api/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current:c,new:n})});
-  const d=await r.json();
-  if(d.success)toast('Password updated');else toast(d.error||'Error','err');
+  const cur = document.getElementById('pw-current').value;
+  const nw  = document.getElementById('pw-new').value;
+  const cf  = document.getElementById('pw-confirm').value;
+  if (nw !== cf) { toast('Passwords do not match','err'); return; }
+  const r = await fetch('/admin/api/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current:cur,new:nw})});
+  const d = await r.json();
+  if (d.success) toast('Password updated â');
+  else toast(d.error||'Failed','err');
 }
 
-let _chartsInit=false;
-function initCharts(){
-  if(_chartsInit)return; _chartsInit=true;
-  const labels=WEEKLY_DATA.map(d=>d.day.slice(5));
-  const revenue=WEEKLY_DATA.map(d=>d.revenue);
-  const orders=WEEKLY_DATA.map(d=>d.orders);
-  const dlabels=TOP_DISHES.map(d=>d[0]);
-  const dcounts=TOP_DISHES.map(d=>d[1]);
-  const colors=['#c9973a','#3b82f6','#22c55e','#f59e0b','#a855f7','#ef4444','#06b6d4','#ec4899'];
-  const gridColor='rgba(255,255,255,.06)';
-  const tickColor='#94a3b8';
-  new Chart(document.getElementById('revenueChart'),{type:'bar',data:{labels,datasets:[{label:'Â£',data:revenue,backgroundColor:'rgba(201,151,58,.7)',borderColor:'#c9973a',borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tickColor},grid:{color:gridColor}},y:{ticks:{color:tickColor,callback:v=>'Â£'+v},grid:{color:gridColor}}}}});
-  new Chart(document.getElementById('dishChart'),{type:'doughnut',data:{labels:dlabels,datasets:[{data:dcounts,backgroundColor:colors}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:tickColor,boxWidth:12,font:{size:11}}}}}});
-  new Chart(document.getElementById('orderCountChart'),{type:'line',data:{labels,datasets:[{label:'Orders',data:orders,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',fill:true,tension:.4,pointBackgroundColor:'#3b82f6'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tickColor},grid:{color:gridColor}},y:{ticks:{color:tickColor},grid:{color:gridColor},min:0}}}});
+// ââ Charts âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function initCharts() {
+  if (_chartsInit) return;
+  _chartsInit = true;
+  const labels = Object.keys(WEEKLY_DATA);
+  const rev    = labels.map(d=>WEEKLY_DATA[d].revenue||0);
+  const cnt    = labels.map(d=>WEEKLY_DATA[d].orders||0);
+  const shortLabels = labels.map(d=>d.slice(5));
+  const totalRev = rev.reduce((a,b)=>a+b,0);
+  const totalOrders = cnt.reduce((a,b)=>a+b,0);
+  document.getElementById('a-revenue').textContent = 'Â£'+totalRev.toFixed(2);
+  document.getElementById('a-avg').textContent = totalOrders ? 'Â£'+(totalRev/totalOrders).toFixed(2) : 'â';
+  const cOpts = { responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:|{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#94a3b8',font:{size:10}}},
+            y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#94a3b8',font:{size:10}}}} };
+  new Chart(document.getElementById('revenueChart'),{
+    type:'bar', data:{labels:shortLabels,datasets:[{data:rev,backgroundColor:'rgba(201,151,58,.7)',borderRadius:6}]}, options:cOpts
+  });
+  new Chart(document.getElementById('orderCountChart'),{
+    type:'line', data:{labels:shortLabels,datasets:[{data:cnt,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',tension:.4,fill:true,pointRadius:3}]}, options:cOpts
+  });
+  const top = TOP_DISHES.slice(0,8);
+  new Chart(document.getElementById('dishChart'),{
+    type:'doughnut',
+    data:{labels:top.map(d=>d.name),datasets:[{data:top.map(d=>d.qty),backgroundColor:['#c9973a','#3b82f6','#22c55e','#ef4444','#a855f7','#f59e0b','#06b6d4','#ec4899']}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:10},boxWidth:10}}}}
+  });
+  loadHourlyChart();
 }
 
-// New order polling
-let _last=new Date().toISOString(),_nc=0;
+async function loadHourlyChart() {
+  try {
+    const r = await fetch('/admin/api/analytics/hourly');
+    const data = await r.json();
+    const hours = Array.from({length:24},(_,i)=>i);
+    const counts = hours.map(h=>data[String(h)]?.orders||0);
+    let peakHour = 0, peakVal = 0;
+    counts.forEach((v,i)=>{if(v>peakVal){peakVal=v;peakHour=i;}});
+    document.getElementById('a-hour').textContent = peakVal ? `${peakHour}:00` : 'â';
+    const cOpts2 = { responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#94a3b8',font:{size:9}}},
+              y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#94a3b8',font:{size:9}}}} };
+    new Chart(document.getElementById('hourlyChart'),{
+      type:'bar',
+      data:{labels:hours.map(h=>h+':00'),datasets:[{data:counts,backgroundColor:counts.map((_,i)=>i===peakHour?'#c9973a':'rgba(59,130,246,.6)'),borderRadius:4}]},
+      options:cOpts2
+    });
+  } catch(e) { document.getElementById('a-hour').textContent='â'; }
+}
+
+// ââ New order polling ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const orderSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA' +
+  'EAAQAARKwAAIhYAQACABAAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbv4tROjBil8' +
+  'TRuIJYPTxrm8PPuY9mRkBzn8bUsZJsUE6Bq9bfxJtxUk+EqNrhxqF3VlN9oM3nvJd2' +
+  'VVKHpc7svJl3V1WKptDovJ14VlSLpc/pvJp4VlSKps/pvJ15VlSLps/pvJp4VlSLps/p' +
+  'vJ15VlSLps/pvJp4VlSLps/pvJ15VlQ=');
+
 async function checkNew(){
-  try{
-    const r=await fetch(`/admin/api/orders/new-count?since=${encodeURIComponent(_last)}`);
-    const d=await r.json();
-    if(d.count>0){
-      _nc+=d.count;
-      const cnt=document.getElementById('notif-count');
-      const bell=document.getElementById('notif-bell');
-      const banner=document.getElementById('notif-banner');
-      const sbp=document.getElementById('sb-pending');
-      cnt.textContent=_nc; cnt.style.display='flex';
-      bell.classList.add('ringing'); setTimeout(()=>bell.classList.remove('ringing'),1500);
-      banner.style.display='block';
-      banner.textContent=`ð ${_nc} new order${_nc>1?'s':''} received! Click Orders tab to view.`;
-      sbp.textContent=_nc; sbp.style.display='inline';
-      try{const ctx=new(window.AudioContext||window.webkitAudioContext)(),o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.value=.3;o.start();o.stop(ctx.currentTime+.25);}catch(e){}
+  try {
+    const r = await fetch('/admin/api/orders/new-count');
+    const d = await r.json();
+    const cnt = d.count||0;
+    const pendEl = document.getElementById('s-pending');
+    if (pendEl) pendEl.textContent = cnt;
+    const badge = document.getElementById('sb-pending');
+    if (cnt > 0) {
+      badge.textContent = cnt;
+      badge.classList.add('show');
+      document.getElementById('notif-count').textContent = cnt;
+      document.getElementById('notif-count').classList.add('show');
+      document.getElementById('notif-bell').classList.add('ringing');
+      if (cnt > _prevNewCount) {
+        try { orderSound.currentTime=0; orderSound.play().catch(()=>{}); } catch(e){}
+        pushNotif('ð New Order!', `${cnt} order${cnt>1?'s':''} waiting â Masala Kitchen`);
+        const banner = document.getElementById('notif-banner');
+        banner.textContent = `ð ${cnt} new order${cnt>1?'s':''} received!`;
+        banner.style.display = 'block';
+        setTimeout(()=>{banner.style.display='none';},8000);
+      }
+    } else {
+      badge.classList.remove('show');
+      document.getElementById('notif-count').classList.remove('show');
+      document.getElementById('notif-bell').classList.remove('ringing');
     }
-    _last=new Date().toISOString();
-  }catch(e){}
+    _prevNewCount = cnt;
+    // Promo uses in analytics (approximate from weekly data)
+    const promoEl = document.getElementById('a-promos');
+    if (promoEl && promoEl.textContent==='â') promoEl.textContent = d.promo_uses||'â';
+  } catch(e){}
 }
-setInterval(checkNew,20000);
-checkNew();
 
-// Auto-refresh order statuses
 async function refreshStatuses(){
-  if(!document.getElementById('tab-orders').classList.contains('active'))return;
-  try{
-    const r=await fetch('/admin/api/orders');
-    const orders=await r.json();
-    const pending=orders.filter(o=>o.status==='received').length;
-    document.getElementById('s-pending').textContent=pending;
-  }catch(e){}
+  try {
+    const r = await fetch('/admin/api/orders');
+    const orders = await r.json();
+    orders.forEach(o => {
+      const row = document.querySelector(`.order-row[data-search*="${o.id.toLowerCase()}"]`);
+      if (row) {
+        row.dataset.status = o.status;
+        row.querySelectorAll('.qs-btn').forEach(b => b.classList.toggle('current', b.textContent.toLowerCase()===o.status));
+      }
+    });
+  } catch(e){}
 }
-setInterval(refreshStatuses,30000);
+
+checkNew();
+setInterval(checkNew, 15000);
+setInterval(refreshStatuses, 30000);
 </script>
 </body>
 </html>
