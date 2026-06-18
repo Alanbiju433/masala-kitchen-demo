@@ -35,16 +35,16 @@ def get_openai_client():
 with open('data/restaurant.json') as f:
     RESTAURANT = json.load(f)
 
-# Promo codes — server-side only, never sent to client
+# Promo codes â server-side only, never sent to client
 PROMOS = {
     'WELCOME10': {'type': 'pct',   'value': 10,  'label': '10% Welcome discount',       'multi_use': False},
     'SPICE20':   {'type': 'pct',   'value': 20,  'label': '20% Spice Lover discount',    'multi_use': False},
     'HALAL15':   {'type': 'pct',   'value': 15,  'label': '15% Halal loyalty discount',  'multi_use': False},
     'STUDENT10': {'type': 'pct',   'value': 10,  'label': '10% Student discount',        'multi_use': True, 'requires_id': True},
-    'FLAT5':     {'type': 'fixed', 'value': 5.0, 'label': '£5 off your order',           'multi_use': False},
+    'FLAT5':     {'type': 'fixed', 'value': 5.0, 'label': 'Â£5 off your order',           'multi_use': False},
 }
 
-# ── DB helpers ─────────────────────────────────────────────────────────────────
+# ââ DB helpers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 def get_db():
     db = getattr(g, '_db', None)
     if db is None:
@@ -74,7 +74,7 @@ def init_db():
     with app.app_context():
         conn = get_db()
         with conn.cursor() as cur:
-            cur.execute('''
+      2     cur.execute('''
                 CREATE TABLE IF NOT EXISTS admin_users (
                     id SERIAL PRIMARY KEY,
                     username TEXT UNIQUE NOT NULL,
@@ -104,7 +104,7 @@ def init_db():
                     phone TEXT NOT NULL,
                     email TEXT DEFAULT '',
                     address TEXT DEFAULT '',
-                    postcode TEXT DEFAULT '',
+            3       postcode TEXT DEFAULT '',
                     items TEXT NOT NULL,
                     subtotal REAL DEFAULT 0,
                     discount REAL DEFAULT 0,
@@ -142,6 +142,15 @@ def init_db():
                     active INTEGER DEFAULT 1,
                     sort_order INTEGER DEFAULT 0
                 );
+                CREATE TABLE IF NOT EXISTS promo_codes (
+                    code TEXT PRIMARY KEY,
+                    type TEXT NOT NULL,
+                    value REAL NOT NULL,
+                    single_use BOOLEAN DEFAULT FALSE,
+                    active BOOLEAN DEFAULT TRUE,
+                    label TEXT DEFAULT '',
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
             ''')
             # Migrate: add customer_id to orders/bookings if not present
             cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id INTEGER")
@@ -151,6 +160,14 @@ def init_db():
             if not cur.fetchone():
                 cur.execute('INSERT INTO admin_users (username,password_hash) VALUES (%s,%s)',
                            ('admin', generate_password_hash('admin123')))
+            # Seed promo codes from PROMOS dict
+            cur.execute('SELECT 1 FROM promo_codes LIMIT 1')
+            if not cur.fetchone():
+                for code, data in PROMOS.items():
+                    cur.execute(
+                        'INSERT INTO promo_codes (code,type,value,single_use,label) VALUES (%s,%s,%s,%s,%s)',
+                        (code, data['type'], data['value'], data['single_use'], data.get('label',''))
+                    )
             # Seed menu
             cur.execute('SELECT 1 FROM menu_items LIMIT 1')
             if not cur.fetchone():
@@ -168,7 +185,7 @@ def init_db():
 
 init_db()
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+# ââ Helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 def short_id():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
@@ -201,7 +218,7 @@ def build_system_prompt():
         for it in items:
             v = ' [VEGAN]' if it.get('vegan') else ''
             a = f" (allergens: {', '.join(it['allergens'])})" if it.get('allergens') else ''
-            menu_text += f"  - {it['name']} - £{it['price']:.2f}: {it['description']}{v}{a}\n"
+            menu_text += f"  - {it['name']} - Â£{it['price']:.2f}: {it['description']}{v}{a}\n"
     hours = '\n'.join(f'  {d}: {t}' for d, t in r['hours'].items())
     deals = '\n'.join(f"  - {d['name']}: {d['description']} ({d['valid']})" for d in r['deals'])
     promo_text = '\n'.join(f"  {k}: {v['label']}" for k,v in PROMOS.items())
@@ -232,7 +249,7 @@ Always mention allergens when asked. Direct complaints to {r["phone"]} or {r["em
 
 SYSTEM_PROMPT = build_system_prompt()
 
-# ── Customer auth ─────────��────────────────────────────────────────────────────
+# ââ Customer auth âââââââââï¿½ï¿½ââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/customer/register', methods=['POST'])
 def customer_register():
     data  = request.get_json()
@@ -242,7 +259,7 @@ def customer_register():
     if not email or not pw or len(pw) < 6:
         return jsonify({'error': 'Email and password (min 6 chars) required'}), 400
     if db_execute('SELECT 1 FROM customers WHERE email=%s', (email,), fetch='one'):
-        return jsonify({'error': 'Email already registered — please log in'}), 400
+        return jsonify({'error': 'Email already registered â please log in'}), 400
     row = db_execute('INSERT INTO customers (email,password_hash,name) VALUES(%s,%s,%s) RETURNING id',
                      (email, generate_password_hash(pw), name), fetch='one')
     session['cust_id']    = row['id']
@@ -297,7 +314,7 @@ def customer_used_promos():
                       (session['cust_id'],), fetch='all')
     return jsonify([r['promo_code'] for r in rows])
 
-# ── Public routes ──────────────────────────────────────────────────────────────
+# ââ Public routes ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/')
 def index():
     restaurant = dict(RESTAURANT)
@@ -328,7 +345,14 @@ def apply_promo():
     data     = request.get_json()
     code     = (data.get('code','') or '').strip().upper()
     subtotal = float(data.get('subtotal', 0))
-    promo    = PROMOS.get(code)
+
+    # Check DB-backed promo codes first, fallback to PROMOS dict
+    promo_row = db_execute('SELECT * FROM promo_codes WHERE code=%s AND active=TRUE', (code,), fetch='one')
+    if promo_row:
+        promo = {'type': promo_row['type'], 'value': promo_row['value'],
+                 'single_use': promo_row['single_use'], 'label': promo_row['label'] or code}
+    else:
+        promo = PROMOS.get(code)
 
     if not promo:
         return jsonify({'valid': False, 'message': 'Invalid promo code'})
@@ -338,21 +362,22 @@ def apply_promo():
         return jsonify({'valid': False, 'message': 'Please log in to use promo codes', 'require_login': True})
 
     # Check if already used (for single-use promos)
-    if not promo.get('multi_use'):
+    if promo.get('single_use') or not promo.get('multi_use'):
         already = db_execute('SELECT 1 FROM promo_usage WHERE customer_id=%s AND promo_code=%s',
                              (cust_id, code), fetch='one')
         if already:
             return jsonify({'valid': False, 'message': f'You have already used {code}'})
 
-    if promo['type'] == 'pct':
-        discount = round(subtotal * promo['value'] / 100, 2)
+    ptype = promo.get('type', 'percent')
+    if ptype in ('pct', 'percent'):
+        discount = round(subtotal * float(promo['value']) / 100, 2)
     else:
-        discount = min(promo['value'], subtotal)
+        discount = min(float(promo['value']), subtotal)
 
     return jsonify({
         'valid':       True,
         'code':        code,
-        'label':       promo['label'],
+        'label':       promo.get('label', code),
         'discount':    discount,
         'total':       round(subtotal - discount, 2),
         'requires_id': promo.get('requires_id', False),
@@ -378,7 +403,7 @@ def place_order():
             already = db_execute('SELECT 1 FROM promo_usage WHERE customer_id=%s AND promo_code=%s',
                                 (cust_id, code), fetch='one')
             if already:
-                code = ''  # strip the promo — already used
+                code = ''  # strip the promo â already used
             else:
                 if promo['type'] == 'pct':
                     discount = round(subtotal * promo['value'] / 100, 2)
@@ -411,9 +436,9 @@ def place_order():
             db_execute('INSERT INTO promo_usage (customer_id,promo_code,order_id) VALUES(%s,%s,%s)',
                       (cust_id, code, oid))
         except Exception:
-            pass  # race condition — ignore duplicate
+            pass  # race condition â ignore duplicate
 
-    print(f'=== NEW ORDER {oid} | {data.get("order_type")} | {name} | £{total} ===')
+    print(f'=== NEW ORDER {oid} | {data.get("order_type")} | {name} | Â£{total} ===')
     return jsonify({'success': True, 'order_id': oid})
 
 @app.route('/book', methods=['POST'])
@@ -460,7 +485,7 @@ def reset():
     session.pop('history', None)
     return jsonify({'status': 'ok'})
 
-# ── Stripe ─────────────────────────────────────────────────────────────────────
+# ââ Stripe âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/stripe/create-intent', methods=['POST'])
 def create_intent():
     if not STRIPE_ON:
@@ -491,7 +516,7 @@ def stripe_webhook():
         db_execute("UPDATE orders SET payment_status='paid' WHERE stripe_pi=%s", (pi,))
     return '', 200
 
-# ── Admin auth ─────────────────────────────────────────────────────────────────
+# ââ Admin auth âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/admin/login', methods=['GET','POST'])
 def admin_login():
     if session.get('admin_id'):
@@ -514,7 +539,7 @@ def admin_logout():
     session.pop('admin_username', None)
     return redirect(url_for('admin_login'))
 
-# ── Admin dashboard ────────────────────────────────────────────────────────────
+# ââ Admin dashboard ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/admin')
 @app.route('/admin/dashboard')
 @admin_required
@@ -577,7 +602,7 @@ def admin_dashboard():
                            top_dishes=json.dumps(top_dishes),
                            username=session.get('admin_username','admin'))
 
-# ── Admin API ──────────────────────────────────────────────────────────────────
+# ââ Admin API ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 @app.route('/admin/api/orders')
 @admin_required
 def admin_api_orders():
@@ -662,33 +687,4 @@ def admin_menu_update(mid):
     else:
         allergens_json = json.dumps([a.strip() for a in allergens.split(',') if a.strip()])
     db_execute('''UPDATE menu_items
-                  SET category=%s,name=%s,description=%s,price=%s,vegan=%s,allergens=%s,active=%s
-                  WHERE id=%s''',
-               (data['category'], data['name'], data.get('description',''),
-                float(data['price']), 1 if data.get('vegan') else 0,
-                allergens_json, 1 if data.get('active', True) else 0, mid))
-    return jsonify({'success': True})
-
-@app.route('/admin/api/menu/<int:mid>', methods=['DELETE'])
-@admin_required
-def admin_menu_delete(mid):
-    db_execute('UPDATE menu_items SET active=0 WHERE id=%s', (mid,))
-    return jsonify({'success': True})
-
-@app.route('/admin/api/change-password', methods=['POST'])
-@admin_required
-def change_password():
-    data    = request.get_json()
-    current = data.get('current','')
-    new_pw  = data.get('new','')
-    if len(new_pw) < 6:
-        return jsonify({'error': 'Password must be at least 6 characters'}), 400
-    user = db_execute('SELECT * FROM admin_users WHERE id=%s', (session['admin_id'],), fetch='one')
-    if not check_password_hash(user['password_hash'], current):
-        return jsonify({'error': 'Current password is incorrect'}), 400
-    db_execute('UPDATE admin_users SET password_hash=%s WHERE id=%s',
-               (generate_password_hash(new_pw), session['admin_id']))
-    return jsonify({'success': True})
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+                  SET category=%s,name=%s,description=%s,pr
